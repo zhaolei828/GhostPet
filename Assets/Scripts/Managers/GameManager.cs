@@ -48,7 +48,7 @@ public class GameManager : MonoBehaviour
     private void InitializeGame()
     {
         // 寻找当前场景中的玩家
-        currentPlayer = FindObjectOfType<PlayerController>();
+        currentPlayer = FindFirstObjectByType<PlayerController>();
         
         if (currentPlayer == null && playerPrefab != null)
         {
@@ -59,7 +59,7 @@ public class GameManager : MonoBehaviour
         // 设置摄像机跟随
         if (cameraFollow == null)
         {
-            cameraFollow = FindObjectOfType<CameraFollow>();
+            cameraFollow = FindFirstObjectByType<CameraFollow>();
         }
         
         if (cameraFollow != null && currentPlayer != null)

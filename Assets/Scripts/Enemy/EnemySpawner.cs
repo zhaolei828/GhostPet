@@ -10,7 +10,6 @@ public class EnemySpawner : MonoBehaviour
     [SerializeField] private GameObject[] enemyPrefabs;        // 敌人预制体数组
     [SerializeField] private float spawnInterval = 3f;        // 生成间隔时间
     [SerializeField] private int maxEnemies = 20;              // 最大敌人数量
-    [SerializeField] private float spawnDistance = 8f;        // 生成距离（离玩家的距离）
     [SerializeField] private float spawnVariance = 2f;        // 生成位置随机偏差
     
     [Header("生成区域")]
@@ -227,11 +226,11 @@ public class EnemySpawner : MonoBehaviour
         
         // 最小生成半径
         Gizmos.color = Color.green;
-        Gizmos.DrawWireCircle(player.position, minSpawnRadius);
+        Gizmos.DrawWireSphere(player.position, minSpawnRadius);
         
         // 最大生成半径
         Gizmos.color = Color.red;
-        Gizmos.DrawWireCircle(player.position, maxSpawnRadius);
+        Gizmos.DrawWireSphere(player.position, maxSpawnRadius);
     }
     
     // 公开属性

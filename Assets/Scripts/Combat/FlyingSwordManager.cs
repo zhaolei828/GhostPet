@@ -198,10 +198,10 @@ public class FlyingSwordManager : MonoBehaviour
     private void OnDrawGizmosSelected()
     {
         Gizmos.color = Color.cyan;
-        Gizmos.DrawWireCircle(transform.position, attackRange);
+        Gizmos.DrawWireSphere(transform.position, attackRange);
         
         Gizmos.color = Color.blue;
-        Gizmos.DrawWireCircle(transform.position, orbitRadius);
+        Gizmos.DrawWireSphere(transform.position, orbitRadius);
     }
     
     // 属性访问器

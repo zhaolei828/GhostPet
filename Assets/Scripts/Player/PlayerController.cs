@@ -10,12 +10,12 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private float moveSpeed = 5f;
     
     [Header("组件引用")]
+    [SerializeField] private InputActionAsset inputActions;
     private Rigidbody2D rb;
     private SpriteRenderer spriteRenderer;
     
     // 输入相关
     private Vector2 moveInput;
-    private PlayerInputActions inputActions;
     
     // 玩家状态
     public bool IsAlive { get; private set; } = true;
@@ -25,25 +25,57 @@ public class PlayerController : MonoBehaviour
         // 获取组件
         rb = GetComponent<Rigidbody2D>();
         spriteRenderer = GetComponent<SpriteRenderer>();
-        
-        // 初始化输入系统
-        inputActions = new PlayerInputActions();
     }
     
     private void OnEnable()
     {
-        inputActions.Player.Enable();
-        inputActions.Player.Move.performed += OnMove;
-        inputActions.Player.Move.canceled += OnMove;
-        inputActions.Player.Attack.performed += OnAttack;
+        if (inputActions != null)
+        {
+            var playerMap = inputActions.FindActionMap("Player");
+            if (playerMap != null)
+            {
+                playerMap.Enable();
+                var moveAction = playerMap.FindAction("Move");
+                var attackAction = playerMap.FindAction("Attack");
+                
+                if (moveAction != null)
+                {
+                    moveAction.performed += OnMove;
+                    moveAction.canceled += OnMove;
+                }
+                
+                if (attackAction != null)
+                {
+                    attackAction.performed += OnAttack;
+                }
+            }
+        }
     }
     
     private void OnDisable()
     {
-        inputActions.Player.Move.performed -= OnMove;
-        inputActions.Player.Move.canceled -= OnMove;
-        inputActions.Player.Attack.performed -= OnAttack;
-        inputActions.Player.Disable();
+        if (inputActions != null)
+        {
+            var playerMap = inputActions.FindActionMap("Player");
+            if (playerMap != null)
+            {
+                var moveAction = playerMap.FindAction("Move");
+                var attackAction = playerMap.FindAction("Attack");
+                
+                if (moveAction != null)
+                {
+                    moveAction.performed -= OnMove;
+                    moveAction.canceled -= OnMove;
+                }
+                
+                if (attackAction != null)
+                {
+                    attackAction.performed -= OnAttack;
+                }
+                
+                playerMap.Disable();
+            }
+        }
     }
     
     private void FixedUpdate()
@@ -60,7 +92,7 @@ public class PlayerController : MonoBehaviour
         
         // 应用移动
         Vector2 movement = moveInput * moveSpeed;
-        rb.velocity = movement;
+        rb.linearVelocity = movement;
         
         // 根据移动方向翻转精灵
         if (moveInput.x != 0)
@@ -108,12 +140,8 @@ public class PlayerController : MonoBehaviour
     {
         transform.position = spawnPosition;
         IsAlive = true;
-        rb.velocity = Vector2.zero;
+        rb.linearVelocity = Vector2.zero;
         Debug.Log("玩家重生！");
     }
     
-    private void OnDestroy()
-    {
-        inputActions?.Dispose();
-    }
 }

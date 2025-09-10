@@ -142,7 +142,7 @@ public class EnemyAI : MonoBehaviour
             }
         }
         
-        rb.velocity = movement;
+        rb.linearVelocity = movement;
     }
     
     /// <summary>
@@ -182,7 +182,7 @@ public class EnemyAI : MonoBehaviour
     {
         isAlive = false;
         currentState = EnemyState.Idle;
-        rb.velocity = Vector2.zero;
+        rb.linearVelocity = Vector2.zero;
         
         // TODO: 播放死亡动画
         // TODO: 掉落物品
@@ -217,10 +217,10 @@ public class EnemyAI : MonoBehaviour
     {
         // 跟随范围
         Gizmos.color = Color.yellow;
-        Gizmos.DrawWireCircle(transform.position, followRange);
+        Gizmos.DrawWireSphere(transform.position, followRange);
         
         // 攻击范围
         Gizmos.color = Color.red;
-        Gizmos.DrawWireCircle(transform.position, attackRange);
+        Gizmos.DrawWireSphere(transform.position, attackRange);
     }
 }
