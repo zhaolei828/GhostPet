@@ -1,9 +1,6 @@
 {
   "dependencies": {
-    // IDE支持
     "com.boxqkrtm.ide.cursor": "https://github.com/boxqkrtm/com.unity.ide.cursor.git",
-    
-    // 2D游戏开发核心包
     "com.unity.2d.animation": "12.0.2",
     "com.unity.2d.aseprite": "2.0.1",
     "com.unity.2d.psdimporter": "11.0.1",
@@ -11,38 +8,20 @@
     "com.unity.2d.spriteshape": "12.0.1",
     "com.unity.2d.tilemap": "1.0.0",
     "com.unity.2d.tilemap.extras": "5.0.1",
-    
-    // 输入和控制
     "com.unity.inputsystem": "1.14.2",
-    
-    // 渲染管线
     "com.unity.render-pipelines.universal": "17.2.0",
-    
-    // 音频系统
     "com.unity.timeline": "1.8.9",
-    
-    // UI系统
     "com.unity.ugui": "2.0.0",
-    
-    // 可视化脚本
     "com.unity.visualscripting": "1.9.7",
-    
-    // 开发工具
     "com.unity.ide.rider": "3.0.36",
     "com.unity.ide.visualstudio": "2.0.23",
     "com.unity.collab-proxy": "2.9.3",
     "com.unity.test-framework": "1.5.1",
-    
-    // 推荐的附加包 (可选但实用)
-    "com.unity.cinemachine": "2.10.1",     // 摄像机控制
-    "com.unity.postprocessing": "3.4.0",   // 后处理效果
-    "com.unity.probuilder": "6.0.2",       // 快速建模
-    "com.unity.recorder": "6.0.2",         // 录制工具
-    
-    // 多人游戏支持
+    "com.unity.cinemachine": "2.10.1",
+    "com.unity.postprocessing": "3.4.0",
+    "com.unity.probuilder": "6.0.2",
+    "com.unity.recorder": "6.0.2",
     "com.unity.multiplayer.center": "1.0.0",
-    
-    // Unity模块 (核心系统)
     "com.unity.modules.accessibility": "1.0.0",
     "com.unity.modules.ai": "1.0.0",
     "com.unity.modules.androidjni": "1.0.0",
