@@ -128,14 +128,8 @@ public class FlyingSword : MonoBehaviour
     /// </summary>
     private void MoveToOrbitPosition()
     {
-        if (Vector3.Distance(transform.position, orbitPosition) > 0.1f)
-        {
-            transform.position = Vector3.MoveTowards(transform.position, orbitPosition, returnSpeed * Time.deltaTime);
-        }
-        else
-        {
-            transform.position = orbitPosition;
-        }
+        // 在环绕模式下直接设置位置，确保飞剑始终跟随玩家
+        transform.position = orbitPosition;
     }
     
     /// <summary>

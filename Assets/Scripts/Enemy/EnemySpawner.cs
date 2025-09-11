@@ -43,6 +43,10 @@ public class EnemySpawner : MonoBehaviour
         if (player == null)
         {
             FindPlayer();
+            if (player == null)
+            {
+                Debug.LogWarning("EnemySpawner: 找不到玩家！");
+            }
             return;
         }
         
@@ -52,6 +56,7 @@ public class EnemySpawner : MonoBehaviour
         // 检查是否需要生成敌人
         if (Time.time >= nextSpawnTime && spawnedEnemies.Count < maxEnemies)
         {
+            Debug.Log($"EnemySpawner: 尝试生成敌人 - 时间:{Time.time:F1}, 下次生成时间:{nextSpawnTime:F1}, 当前敌人数:{spawnedEnemies.Count}");
             SpawnEnemy();
             SetNextSpawnTime();
         }
@@ -91,13 +96,19 @@ public class EnemySpawner : MonoBehaviour
     /// </summary>
     private void SpawnEnemy()
     {
-        if (enemyPrefabs.Length == 0) return;
+        if (enemyPrefabs.Length == 0) 
+        {
+            Debug.LogError("EnemySpawner: enemyPrefabs数组为空！");
+            return;
+        }
         
         // 随机选择敌人类型
         GameObject enemyPrefab = enemyPrefabs[Random.Range(0, enemyPrefabs.Length)];
+        Debug.Log($"EnemySpawner: 选择预制体 {enemyPrefab.name}");
         
         // 计算生成位置
         Vector3 spawnPosition = GetRandomSpawnPosition();
+        Debug.Log($"EnemySpawner: 计算生成位置 {spawnPosition}");
         
         // 检查位置是否有效
         if (IsValidSpawnPosition(spawnPosition))
@@ -110,7 +121,11 @@ public class EnemySpawner : MonoBehaviour
             
             spawnedEnemies.Add(enemy);
             
-            Debug.Log($"生成敌人: {enemy.name} 在位置 {spawnPosition}, 当前难度: {currentDifficulty:F1}");
+            Debug.Log($"成功生成敌人: {enemy.name} 在位置 {spawnPosition}, 当前难度: {currentDifficulty:F1}");
+        }
+        else
+        {
+            Debug.LogWarning($"EnemySpawner: 生成位置 {spawnPosition} 无效，跳过本次生成");
         }
     }
     

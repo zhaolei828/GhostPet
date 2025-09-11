@@ -7,7 +7,7 @@ public class CameraFollow : MonoBehaviour
 {
     [Header("跟随设置")]
     [SerializeField] private Transform target;           // 跟随目标（玩家）
-    [SerializeField] private float smoothSpeed = 0.125f; // 跟随平滑速度
+    [SerializeField] private float smoothSpeed = 2f; // 跟随平滑速度
     [SerializeField] private Vector3 offset = new Vector3(0, 0, -10); // 摄像机偏移
     
     [Header("边界限制")]
