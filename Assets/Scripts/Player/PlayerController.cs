@@ -13,9 +13,11 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private InputActionAsset inputActions;
     private Rigidbody2D rb;
     private SpriteRenderer spriteRenderer;
+    private TouchInputManager touchInputManager;
     
     // 输入相关
     private Vector2 moveInput;
+    private Vector2 touchMoveInput;
     
     // 玩家状态
     public bool IsAlive { get; private set; } = true;
@@ -25,6 +27,7 @@ public class PlayerController : MonoBehaviour
         // 获取组件
         rb = GetComponent<Rigidbody2D>();
         spriteRenderer = GetComponent<SpriteRenderer>();
+        touchInputManager = FindFirstObjectByType<TouchInputManager>();
     }
     
     private void OnEnable()
@@ -50,6 +53,9 @@ public class PlayerController : MonoBehaviour
                 }
             }
         }
+        
+        // 订阅触控输入事件
+        TouchInputManager.OnTouchMove += OnTouchMove;
     }
     
     private void OnDisable()
@@ -76,6 +82,9 @@ public class PlayerController : MonoBehaviour
                 playerMap.Disable();
             }
         }
+        
+        // 取消订阅触控输入事件
+        TouchInputManager.OnTouchMove -= OnTouchMove;
     }
     
     private void FixedUpdate()
@@ -90,14 +99,23 @@ public class PlayerController : MonoBehaviour
     {
         if (!IsAlive) return;
         
+        // 合并键盘输入和触控输入
+        Vector2 finalInput = moveInput + touchMoveInput;
+        
+        // 限制移动向量长度，防止对角线移动过快
+        if (finalInput.magnitude > 1f)
+        {
+            finalInput = finalInput.normalized;
+        }
+        
         // 应用移动
-        Vector2 movement = moveInput * moveSpeed;
+        Vector2 movement = finalInput * moveSpeed;
         rb.linearVelocity = movement;
         
         // 根据移动方向翻转精灵
-        if (moveInput.x != 0)
+        if (finalInput.x != 0)
         {
-            spriteRenderer.flipX = moveInput.x < 0;
+            spriteRenderer.flipX = finalInput.x < 0;
         }
     }
     
@@ -118,6 +136,14 @@ public class PlayerController : MonoBehaviour
         
         // TODO: 实现攻击逻辑
         Debug.Log("玩家攻击！");
+    }
+    
+    /// <summary>
+    /// 触控移动输入回调
+    /// </summary>
+    private void OnTouchMove(Vector2 direction)
+    {
+        touchMoveInput = direction;
     }
     
     /// <summary>
