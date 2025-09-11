@@ -138,3 +138,7 @@ ExportedObj/
 # TextMeshPro 相关文件 (Unity自动生成，不需要版本控制)
 Assets/TextMesh Pro/
 Assets/TextMesh Pro.meta
+
+# WebGL构建目录 (测试用，不需要版本控制)
+WebGL-Test/
+WebGL-Build/

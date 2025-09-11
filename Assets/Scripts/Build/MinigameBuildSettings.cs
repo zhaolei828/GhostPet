@@ -2,6 +2,7 @@ using UnityEngine;
 
 #if UNITY_EDITOR
 using UnityEditor;
+using UnityEditor.Build;
 
 /// <summary>
 /// 小游戏构建设置 - 一键配置WebGL构建参数
@@ -66,7 +67,7 @@ public class MinigameBuildSettings : EditorWindow
         PlayerSettings.WebGL.memorySize = 32; // 32MB内存
         PlayerSettings.WebGL.exceptionSupport = WebGLExceptionSupport.None;
         PlayerSettings.WebGL.dataCaching = false;
-        PlayerSettings.WebGL.debugSymbols = false;
+        PlayerSettings.WebGL.debugSymbolMode = WebGLDebugSymbolMode.Off;
         
         // 分辨率设置（微信小游戏推荐）
         PlayerSettings.defaultScreenWidth = 360;
@@ -75,7 +76,8 @@ public class MinigameBuildSettings : EditorWindow
         
         // 优化设置
         PlayerSettings.stripEngineCode = true;
-        PlayerSettings.scriptingBackend = ScriptingImplementation.IL2CPP;
+        // 使用正确的API设置脚本后端
+        PlayerSettings.SetScriptingBackend(NamedBuildTarget.WebGL, ScriptingImplementation.IL2CPP);
         
         // 质量设置
         QualitySettings.SetQualityLevel(0); // 最低质量
@@ -103,7 +105,7 @@ public class MinigameBuildSettings : EditorWindow
         PlayerSettings.WebGL.memorySize = 64; // 64MB内存（抖音限制更宽松）
         PlayerSettings.WebGL.exceptionSupport = WebGLExceptionSupport.None;
         PlayerSettings.WebGL.dataCaching = false;
-        PlayerSettings.WebGL.debugSymbols = false;
+        PlayerSettings.WebGL.debugSymbolMode = WebGLDebugSymbolMode.Off;
         
         // 分辨率设置（抖音小游戏推荐）
         PlayerSettings.defaultScreenWidth = 375;
@@ -112,7 +114,8 @@ public class MinigameBuildSettings : EditorWindow
         
         // 优化设置
         PlayerSettings.stripEngineCode = true;
-        PlayerSettings.scriptingBackend = ScriptingImplementation.IL2CPP;
+        // 使用正确的API设置脚本后端
+        PlayerSettings.SetScriptingBackend(NamedBuildTarget.WebGL, ScriptingImplementation.IL2CPP);
         
         // 质量设置
         QualitySettings.SetQualityLevel(1); // 中等质量
