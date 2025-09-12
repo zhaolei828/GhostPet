@@ -226,13 +226,23 @@ public class PlayerHealthBar : MonoBehaviour
     }
     
     /// <summary>
-    /// 设置血量条位置和大小
+    /// 设置血量条位置和大小（注意：UI元素应该使用RectTransform.anchoredPosition而不是世界坐标）
     /// </summary>
     public void SetPosition(Vector3 position)
     {
         if (healthBarContainer != null)
         {
-            healthBarContainer.transform.position = position;
+            RectTransform rectTransform = healthBarContainer.GetComponent<RectTransform>();
+            if (rectTransform != null)
+            {
+                // 对于Screen Space - Overlay Canvas，使用anchoredPosition
+                rectTransform.anchoredPosition = new Vector2(position.x, position.y);
+            }
+            else
+            {
+                // 如果不是UI元素，则使用世界坐标（这种情况下可能是World Space Canvas）
+                healthBarContainer.transform.position = position;
+            }
         }
     }
     

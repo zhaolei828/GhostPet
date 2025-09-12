@@ -72,13 +72,14 @@ public class ScoreUI : MonoBehaviour
     /// </summary>
     private void FindTextComponents()
     {
-        // 简化：直接使用第一个找到的文本组件作为综合显示
+        // 使用统一的文本组件显示所有信息
         TextMeshProUGUI mainText = GetComponentInChildren<TextMeshProUGUI>();
         if (mainText != null)
         {
             killCountText = mainText;
-            survivalTimeText = mainText;
-            totalScoreText = mainText;
+            // 不再分别设置survivalTimeText和totalScoreText，只使用killCountText作为主显示
+            survivalTimeText = null;
+            totalScoreText = null;
         }
     }
     
@@ -156,54 +157,29 @@ public class ScoreUI : MonoBehaviour
     }
     
     /// <summary>
-    /// 更新击杀数显示
+    /// 更新击杀数显示（已合并到UpdateAllDisplays中）
     /// </summary>
     private void UpdateKillDisplay()
     {
-        if (killCountText != null)
-        {
-            if (showDetailedInfo)
-            {
-                killCountText.text = $"击杀: {currentKills} (+{pointsPerKill * currentKills})";
-            }
-            else
-            {
-                killCountText.text = $"击杀: {currentKills}";
-            }
-        }
+        // 该方法现在由UpdateAllDisplays统一处理
+        UpdateAllDisplays();
     }
     
     /// <summary>
-    /// 更新生存时间显示
+    /// 更新生存时间显示（已合并到UpdateAllDisplays中）
     /// </summary>
     private void UpdateSurvivalTimeDisplay()
     {
-        if (survivalTimeText != null)
-        {
-            int minutes = Mathf.FloorToInt(currentSurvivalTime / 60);
-            int seconds = Mathf.FloorToInt(currentSurvivalTime % 60);
-            
-            if (showDetailedInfo)
-            {
-                int timePoints = Mathf.FloorToInt(currentSurvivalTime) * pointsPerSecond;
-                survivalTimeText.text = $"时间: {minutes:00}:{seconds:00} (+{timePoints})";
-            }
-            else
-            {
-                survivalTimeText.text = $"时间: {minutes:00}:{seconds:00}";
-            }
-        }
+        // 该方法现在由UpdateAllDisplays统一处理，避免重复设置
     }
     
     /// <summary>
-    /// 更新总分显示
+    /// 更新总分显示（已合并到UpdateAllDisplays中）
     /// </summary>
     private void UpdateTotalScoreDisplay()
     {
-        if (totalScoreText != null)
-        {
-            totalScoreText.text = $"总分: {totalScore:N0}";
-        }
+        // 该方法现在由UpdateAllDisplays统一处理
+        UpdateAllDisplays();
     }
     
     /// <summary>
@@ -211,32 +187,22 @@ public class ScoreUI : MonoBehaviour
     /// </summary>
     private void UpdateHighlightEffects()
     {
-        // 击杀数高亮
-        if (killHighlightTimer > 0)
+        // 统一高亮效果 - 击杀或分数变化时都高亮主文本
+        if (killHighlightTimer > 0 || scoreHighlightTimer > 0)
         {
+            float maxTimer = Mathf.Max(killHighlightTimer, scoreHighlightTimer);
+            
             killHighlightTimer -= Time.deltaTime;
+            scoreHighlightTimer -= Time.deltaTime;
+            
             if (killCountText != null)
             {
-                killCountText.color = Color.Lerp(normalColor, highlightColor, killHighlightTimer / highlightDuration);
+                killCountText.color = Color.Lerp(normalColor, highlightColor, maxTimer / highlightDuration);
             }
         }
         else if (killCountText != null)
         {
             killCountText.color = normalColor;
-        }
-        
-        // 总分高亮
-        if (scoreHighlightTimer > 0)
-        {
-            scoreHighlightTimer -= Time.deltaTime;
-            if (totalScoreText != null)
-            {
-                totalScoreText.color = Color.Lerp(normalColor, highlightColor, scoreHighlightTimer / highlightDuration);
-            }
-        }
-        else if (totalScoreText != null)
-        {
-            totalScoreText.color = normalColor;
         }
     }
     

@@ -162,10 +162,15 @@ public class SwordStatusUI : MonoBehaviour
     /// </summary>
     private Sprite CreateSimpleSwordSprite()
     {
-        // 这里可以创建一个简单的矩形精灵
-        // 或者使用Unity的默认精灵
-        return Resources.Load<Sprite>("UI/Knob") ?? 
-               Resources.GetBuiltinResource<Sprite>("UI/Skin/UISprite.psd");
+        // 创建一个1x1的白色纹理
+        Texture2D texture = new Texture2D(1, 1);
+        texture.SetPixel(0, 0, Color.white);
+        texture.Apply();
+        
+        // 从纹理创建Sprite
+        Rect rect = new Rect(0, 0, 1, 1);
+        Vector2 pivot = new Vector2(0.5f, 0.5f);
+        return Sprite.Create(texture, rect, pivot);
     }
     
     /// <summary>
@@ -212,6 +217,7 @@ public class SwordStatusUI : MonoBehaviour
     /// </summary>
     private void UpdateCountText()
     {
+        // 确保组件只被查找一次，避免在每次更新时重复查找
         if (swordCountText == null)
             swordCountText = GetComponentInChildren<TextMeshProUGUI>();
             
