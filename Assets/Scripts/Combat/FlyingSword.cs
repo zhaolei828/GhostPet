@@ -7,7 +7,7 @@ public class FlyingSword : MonoBehaviour
 {
     [Header("视觉设置")]
     [SerializeField] private SpriteRenderer spriteRenderer;
-    [SerializeField] private TrailRenderer trailRenderer;
+    [SerializeField] private SwordAfterimageManager afterimageManager;
     
     // 飞剑状态
     private enum SwordState
@@ -42,8 +42,12 @@ public class FlyingSword : MonoBehaviour
         // 获取组件
         if (spriteRenderer == null)
             spriteRenderer = GetComponent<SpriteRenderer>();
-        if (trailRenderer == null)
-            trailRenderer = GetComponent<TrailRenderer>();
+        if (afterimageManager == null)
+            afterimageManager = GetComponent<SwordAfterimageManager>();
+            
+        // 如果没有残影管理器，自动添加一个
+        if (afterimageManager == null)
+            afterimageManager = gameObject.AddComponent<SwordAfterimageManager>();
     }
     
     private void Update()
@@ -95,9 +99,9 @@ public class FlyingSword : MonoBehaviour
         
         currentState = SwordState.Attacking;
         
-        // 启用拖尾效果
-        if (trailRenderer != null)
-            trailRenderer.enabled = true;
+        // 启用残影效果
+        if (afterimageManager != null)
+            afterimageManager.EnableAfterimage();
         
         Debug.Log($"飞剑 {swordIndex} 开始攻击 {target.name}");
     }
@@ -177,9 +181,9 @@ public class FlyingSword : MonoBehaviour
         {
             currentState = SwordState.Orbiting;
             
-            // 关闭拖尾效果
-            if (trailRenderer != null)
-                trailRenderer.enabled = false;
+            // 关闭残影效果
+            if (afterimageManager != null)
+                afterimageManager.DisableAfterimage();
             
             // 通知管理器
             manager?.OnSwordReturned(this);
@@ -222,6 +226,10 @@ public class FlyingSword : MonoBehaviour
     {
         currentState = SwordState.Returning;
         attackTarget = null;
+        
+        // 生成一个返回时的残影
+        if (afterimageManager != null)
+            afterimageManager.SpawnImmediateAfterimage();
     }
     
     /// <summary>
