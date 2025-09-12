@@ -184,13 +184,18 @@ public class EnemyAI : MonoBehaviour
         currentState = EnemyState.Idle;
         rb.linearVelocity = Vector2.zero;
         
+        // 通知UI系统增加击杀数
+        if (UIManager.Instance != null)
+        {
+            UIManager.Instance.AddKill();
+        }
         // TODO: 播放死亡动画
         // TODO: 掉落物品
         
         // 延迟销毁
         Destroy(gameObject, 2f);
         
-        Debug.Log($"{gameObject.name} 死亡了！");
+        Debug.Log($"{gameObject.name} 死亡了！击杀数+1");
     }
     
     /// <summary>

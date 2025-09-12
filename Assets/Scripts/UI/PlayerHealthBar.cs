@@ -39,7 +39,7 @@ public class PlayerHealthBar : MonoBehaviour
         if (healthSlider == null)
             healthSlider = GetComponentInChildren<Slider>();
         
-        if (fillImage == null && healthSlider != null)
+        if (fillImage == null && healthSlider != null && healthSlider.fillRect != null)
             fillImage = healthSlider.fillRect.GetComponent<Image>();
         
         if (healthText == null)
@@ -134,8 +134,14 @@ public class PlayerHealthBar : MonoBehaviour
         // 检查是否为低血状态
         isLowHealth = targetHealthPercent <= lowHealthThreshold;
         
-        // 更新文本
+        // 立即更新文本显示
         UpdateHealthText();
+        
+        // 如果有填充图像，更新颜色
+        if (fillImage != null)
+        {
+            UpdateHealthBarColor(targetHealthPercent);
+        }
         
         Debug.Log($"血量更新：{currentHealth:F0}/{maxHealth:F0} ({targetHealthPercent * 100:F0}%)");
     }
@@ -174,7 +180,7 @@ public class PlayerHealthBar : MonoBehaviour
     {
         if (healthText == null || !showNumbers) return;
         
-        healthText.text = $"{currentHealth:F0} / {maxHealth:F0}";
+        healthText.text = $"HP: {currentHealth:F0}/{maxHealth:F0}";
     }
     
     /// <summary>

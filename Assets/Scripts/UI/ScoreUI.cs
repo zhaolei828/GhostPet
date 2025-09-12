@@ -72,24 +72,13 @@ public class ScoreUI : MonoBehaviour
     /// </summary>
     private void FindTextComponents()
     {
-        TextMeshProUGUI[] texts = GetComponentsInChildren<TextMeshProUGUI>();
-        
-        foreach (var text in texts)
+        // 简化：直接使用第一个找到的文本组件作为综合显示
+        TextMeshProUGUI mainText = GetComponentInChildren<TextMeshProUGUI>();
+        if (mainText != null)
         {
-            string name = text.name.ToLower();
-            
-            if (killCountText == null && (name.Contains("kill") || name.Contains("击杀")))
-            {
-                killCountText = text;
-            }
-            else if (survivalTimeText == null && (name.Contains("time") || name.Contains("时间")))
-            {
-                survivalTimeText = text;
-            }
-            else if (totalScoreText == null && (name.Contains("score") || name.Contains("分数")))
-            {
-                totalScoreText = text;
-            }
+            killCountText = mainText;
+            survivalTimeText = mainText;
+            totalScoreText = mainText;
         }
     }
     
@@ -158,9 +147,12 @@ public class ScoreUI : MonoBehaviour
     /// </summary>
     private void UpdateAllDisplays()
     {
-        UpdateKillDisplay();
-        UpdateSurvivalTimeDisplay();
-        UpdateTotalScoreDisplay();
+        if (killCountText != null)
+        {
+            int minutes = Mathf.FloorToInt(currentSurvivalTime / 60);
+            int seconds = Mathf.FloorToInt(currentSurvivalTime % 60);
+            killCountText.text = $"Kills: {currentKills}  Time: {minutes:00}:{seconds:00}  Score: {totalScore:N0}";
+        }
     }
     
     /// <summary>

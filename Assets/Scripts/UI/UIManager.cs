@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
+using UnityEngine.InputSystem;
 
 /// <summary>
 /// UI管理器 - 统一管理游戏中的所有UI元素
@@ -61,8 +62,9 @@ public class UIManager : MonoBehaviour
     
     private void Update()
     {
-        // 检测暂停输入
-        if (Input.GetKeyDown(KeyCode.Escape))
+        // 检测暂停输入 (使用新的Input System)
+        if (UnityEngine.InputSystem.Keyboard.current != null && 
+            UnityEngine.InputSystem.Keyboard.current.escapeKey.wasPressedThisFrame)
         {
             TogglePause();
         }
@@ -140,8 +142,32 @@ public class UIManager : MonoBehaviour
     /// </summary>
     private void SubscribeToEvents()
     {
-        // 这里可以订阅游戏中的各种事件
-        // 例如：GameManager.OnPlayerHealthChanged += UpdatePlayerHealth;
+        // 查找玩家血量系统并订阅事件
+        GameObject player = GameObject.FindWithTag("Player");
+        if (player != null)
+        {
+            HealthSystem playerHealth = player.GetComponent<HealthSystem>();
+            if (playerHealth != null)
+            {
+                playerHealth.OnHealthChanged += UpdatePlayerHealth;
+                Debug.Log("UI已连接到玩家血量系统");
+                
+                // 立即更新一次血量显示
+                UpdatePlayerHealth(playerHealth.CurrentHealth, playerHealth.MaxHealth);
+            }
+        }
+        
+        // 启动分数更新
+        if (scoreUI != null)
+        {
+            scoreUI.Initialize();
+        }
+        
+        // 启动飞剑状态更新
+        if (swordStatusUI != null)
+        {
+            swordStatusUI.Initialize();
+        }
     }
     
     /// <summary>
@@ -231,6 +257,17 @@ public class UIManager : MonoBehaviour
         if (swordStatusUI != null)
         {
             swordStatusUI.UpdateStatus(availableSwords, attackingSwords);
+        }
+    }
+    
+    /// <summary>
+    /// 增加击杀数
+    /// </summary>
+    public void AddKill()
+    {
+        if (scoreUI != null)
+        {
+            scoreUI.AddKill();
         }
     }
     

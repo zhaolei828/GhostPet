@@ -212,13 +212,16 @@ public class SwordStatusUI : MonoBehaviour
     /// </summary>
     private void UpdateCountText()
     {
+        if (swordCountText == null)
+            swordCountText = GetComponentInChildren<TextMeshProUGUI>();
+            
         if (swordCountText != null)
         {
-            swordCountText.text = $"飞剑: {availableSwords}/{totalSwords}";
+            swordCountText.text = $"Swords: {availableSwords}/{totalSwords}";
             
             if (attackingSwords > 0)
             {
-                swordCountText.text += $" (攻击中: {attackingSwords})";
+                swordCountText.text += $" (Attacking: {attackingSwords})";
             }
         }
     }
