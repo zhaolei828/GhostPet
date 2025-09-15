@@ -260,7 +260,7 @@ public class SwordStatusUI : MonoBehaviour
                     color = availableColor;
                 }
                 
-                swordIcons[i].SetState(state, color, enablePulseEffect);
+                swordIcons[i].SetState(state, color, enablePulseEffect, pulseSpeed, pulseScale);
             }
         }
     }
@@ -297,6 +297,8 @@ public class SwordIcon : MonoBehaviour
     private SwordStatusUI.SwordState currentState;
     private bool enablePulse;
     private float pulseTimer;
+    private float currentPulseSpeed = 2f;
+    private float currentPulseScale = 1.2f;
     
     public void Initialize(int index, float size, Color color)
     {
@@ -314,10 +316,12 @@ public class SwordIcon : MonoBehaviour
         }
     }
     
-    public void SetState(SwordStatusUI.SwordState state, Color color, bool pulse)
+    public void SetState(SwordStatusUI.SwordState state, Color color, bool pulse, float pulseSpeed = 2f, float pulseScale = 1.2f)
     {
         currentState = state;
         enablePulse = pulse && state == SwordStatusUI.SwordState.Attacking;
+        currentPulseSpeed = pulseSpeed;
+        currentPulseScale = pulseScale;
         
         if (iconImage != null)
         {
@@ -329,8 +333,8 @@ public class SwordIcon : MonoBehaviour
     {
         if (enablePulse && currentState == SwordStatusUI.SwordState.Attacking)
         {
-            pulseTimer += Time.deltaTime * 2f;
-            float scale = 1f + 0.2f * Mathf.Sin(pulseTimer);
+            pulseTimer += Time.deltaTime * currentPulseSpeed;
+            float scale = 1f + (currentPulseScale - 1f) * Mathf.Sin(pulseTimer);
             transform.localScale = Vector3.one * scale;
         }
         else

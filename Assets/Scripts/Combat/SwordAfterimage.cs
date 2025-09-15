@@ -13,10 +13,12 @@ public class SwordAfterimage : MonoBehaviour
     private Color originalColor;
     private float currentAlpha;
     private float timer;
+    private MaterialPropertyBlock propBlock;
     
     private void Awake()
     {
         spriteRenderer = GetComponent<SpriteRenderer>();
+        propBlock = new MaterialPropertyBlock();
         if (spriteRenderer != null)
         {
             originalColor = spriteRenderer.color;
@@ -73,10 +75,12 @@ public class SwordAfterimage : MonoBehaviour
         currentAlpha -= fadeSpeed * Time.deltaTime;
         currentAlpha = Mathf.Max(0f, currentAlpha);
         
-        // 应用新的透明度
+        // 使用MaterialPropertyBlock更新颜色，避免创建材质实例
+        spriteRenderer.GetPropertyBlock(propBlock);
         Color newColor = originalColor;
         newColor.a = currentAlpha;
-        spriteRenderer.color = newColor;
+        propBlock.SetColor("_Color", newColor);
+        spriteRenderer.SetPropertyBlock(propBlock);
         
         // 如果完全透明则销毁
         if (currentAlpha <= 0f)

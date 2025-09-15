@@ -8,14 +8,11 @@ public class ScoreUI : MonoBehaviour
 {
     [Header("分数显示组件")]
     [SerializeField] private TextMeshProUGUI killCountText; // 击杀数文本
-    [SerializeField] private TextMeshProUGUI survivalTimeText; // 生存时间文本
-    [SerializeField] private TextMeshProUGUI totalScoreText; // 总分文本
     [SerializeField] private GameObject scoreContainer; // 分数容器
     
     [Header("分数计算设置")]
     [SerializeField] private int pointsPerKill = 100; // 每击杀一个敌人的分数
     [SerializeField] private int pointsPerSecond = 10; // 每秒生存的分数
-    [SerializeField] private bool showDetailedInfo = true; // 是否显示详细信息
     
     [Header("视觉效果")]
     [SerializeField] private Color normalColor = Color.white; // 正常颜色
@@ -73,13 +70,9 @@ public class ScoreUI : MonoBehaviour
     private void FindTextComponents()
     {
         // 使用统一的文本组件显示所有信息
-        TextMeshProUGUI mainText = GetComponentInChildren<TextMeshProUGUI>();
-        if (mainText != null)
+        if (killCountText == null)
         {
-            killCountText = mainText;
-            // 不再分别设置survivalTimeText和totalScoreText，只使用killCountText作为主显示
-            survivalTimeText = null;
-            totalScoreText = null;
+            killCountText = GetComponentInChildren<TextMeshProUGUI>();
         }
     }
     

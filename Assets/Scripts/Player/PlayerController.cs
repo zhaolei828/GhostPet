@@ -14,6 +14,7 @@ public class PlayerController : MonoBehaviour
     private Rigidbody2D rb;
     private SpriteRenderer spriteRenderer;
     private TouchInputManager touchInputManager;
+    private HealthSystem healthSystem;
     
     // 输入相关
     private Vector2 moveInput;
@@ -28,6 +29,13 @@ public class PlayerController : MonoBehaviour
         rb = GetComponent<Rigidbody2D>();
         spriteRenderer = GetComponent<SpriteRenderer>();
         touchInputManager = FindFirstObjectByType<TouchInputManager>();
+        healthSystem = GetComponent<HealthSystem>();
+        
+        // 订阅死亡事件
+        if (healthSystem != null)
+        {
+            healthSystem.OnDeath += Die;
+        }
     }
     
     private void OnEnable()
@@ -151,7 +159,11 @@ public class PlayerController : MonoBehaviour
     /// </summary>
     public void Die()
     {
+        if (!IsAlive) return; // 防止重复死亡
+        
         IsAlive = false;
+        rb.linearVelocity = Vector2.zero; // 停止移动
+        
         // TODO: 播放死亡动画
         Debug.Log("玩家死亡！");
         
@@ -167,7 +179,23 @@ public class PlayerController : MonoBehaviour
         transform.position = spawnPosition;
         IsAlive = true;
         rb.linearVelocity = Vector2.zero;
+        
+        // 恢复血量
+        if (healthSystem != null)
+        {
+            healthSystem.Revive(1f); // 满血复活
+        }
+        
         Debug.Log("玩家重生！");
+    }
+    
+    private void OnDestroy()
+    {
+        // 取消事件订阅
+        if (healthSystem != null)
+        {
+            healthSystem.OnDeath -= Die;
+        }
     }
     
 }

@@ -104,29 +104,30 @@ public class EnemySpawner : MonoBehaviour
         
         // 随机选择敌人类型
         GameObject enemyPrefab = enemyPrefabs[Random.Range(0, enemyPrefabs.Length)];
-        Debug.Log($"EnemySpawner: 选择预制体 {enemyPrefab.name}");
         
-        // 计算生成位置
-        Vector3 spawnPosition = GetRandomSpawnPosition();
-        Debug.Log($"EnemySpawner: 计算生成位置 {spawnPosition}");
+        // 尝试多次寻找有效生成位置
+        const int maxAttempts = 10;
+        for (int i = 0; i < maxAttempts; i++)
+        {
+            Vector3 spawnPosition = GetRandomSpawnPosition();
+            
+            // 检查位置是否有效
+            if (IsValidSpawnPosition(spawnPosition))
+            {
+                // 生成敌人
+                GameObject enemy = Instantiate(enemyPrefab, spawnPosition, Quaternion.identity);
+                
+                // 应用难度修正
+                ApplyDifficultyToEnemy(enemy);
+                
+                spawnedEnemies.Add(enemy);
+                
+                Debug.Log($"成功生成敌人: {enemy.name} 在位置 {spawnPosition}, 当前难度: {currentDifficulty:F1}");
+                return; // 成功生成，退出方法
+            }
+        }
         
-        // 检查位置是否有效
-        if (IsValidSpawnPosition(spawnPosition))
-        {
-            // 生成敌人
-            GameObject enemy = Instantiate(enemyPrefab, spawnPosition, Quaternion.identity);
-            
-            // 应用难度修正
-            ApplyDifficultyToEnemy(enemy);
-            
-            spawnedEnemies.Add(enemy);
-            
-            Debug.Log($"成功生成敌人: {enemy.name} 在位置 {spawnPosition}, 当前难度: {currentDifficulty:F1}");
-        }
-        else
-        {
-            Debug.LogWarning($"EnemySpawner: 生成位置 {spawnPosition} 无效，跳过本次生成");
-        }
+        Debug.LogWarning($"EnemySpawner: 尝试 {maxAttempts} 次后仍未找到有效生成位置，跳过本次生成");
     }
     
     /// <summary>

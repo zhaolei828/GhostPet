@@ -42,6 +42,9 @@ public class HealthSystem : MonoBehaviour
         // 扣除血量
         currentHealth = Mathf.Max(0, currentHealth - damage);
         
+        // 显示伤害数字
+        ShowDamageNumber(damage);
+        
         // 触发事件
         OnDamageTaken?.Invoke(damage);
         OnHealthChanged?.Invoke(currentHealth, maxHealth);
@@ -70,6 +73,9 @@ public class HealthSystem : MonoBehaviour
         
         if (actualHeal > 0)
         {
+            // 显示治疗数字
+            ShowHealingNumber(actualHeal);
+            
             OnHealed?.Invoke(actualHeal);
             OnHealthChanged?.Invoke(currentHealth, maxHealth);
             
@@ -133,5 +139,31 @@ public class HealthSystem : MonoBehaviour
     public string GetHealthText()
     {
         return $"{currentHealth:F0}/{maxHealth:F0}";
+    }
+    
+    /// <summary>
+    /// 显示伤害数字
+    /// </summary>
+    private void ShowDamageNumber(float damage)
+    {
+        if (DamageNumberManager.Instance != null)
+        {
+            // 判断是玩家还是敌人
+            DamageType damageType = gameObject.CompareTag("Player") ? 
+                DamageType.PlayerDamage : DamageType.EnemyDamage;
+            
+            DamageNumberManager.Instance.ShowDamageNumber(transform.position, damage, damageType);
+        }
+    }
+    
+    /// <summary>
+    /// 显示治疗数字
+    /// </summary>
+    private void ShowHealingNumber(float healAmount)
+    {
+        if (DamageNumberManager.Instance != null)
+        {
+            DamageNumberManager.Instance.ShowHealingNumber(transform.position, healAmount);
+        }
     }
 }
