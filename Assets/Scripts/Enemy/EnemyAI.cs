@@ -192,11 +192,43 @@ public class EnemyAI : MonoBehaviour
         // TODO: 播放死亡动画
         // TODO: 掉落物品
         
-        // 延迟销毁
+        // 传统模式：延迟销毁
+        // TODO: 对象池系统集成后启用
         Destroy(gameObject, 2f);
+        
+        /* 对象池版本 - 待测试完成后启用
+        // 检查是否使用对象池系统
+        if (EnemyPool.Instance != null)
+        {
+            // 延迟回收到对象池（给动画时间播放）
+            StartCoroutine(DelayedRecycle());
+        }
+        else
+        {
+            // 传统模式：延迟销毁
+            Destroy(gameObject, 2f);
+        }
+        */
         
         Debug.Log($"{gameObject.name} 死亡了！击杀数+1");
     }
+    
+    /* 对象池版本 - 待测试完成后启用
+    /// <summary>
+    /// 延迟回收协程
+    /// </summary>
+    private System.Collections.IEnumerator DelayedRecycle()
+    {
+        // 等待一段时间以播放死亡动画
+        yield return new WaitForSeconds(2f);
+        
+        // 回收到对象池
+        if (EnemyPool.Instance != null && gameObject != null)
+        {
+            EnemyPool.Instance.RecycleEnemy(this);
+        }
+    }
+    */
     
     /// <summary>
     /// 受到玩家攻击

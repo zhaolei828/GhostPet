@@ -2,12 +2,12 @@ using UnityEngine;
 using System.Collections.Generic;
 
 /// <summary>
-/// 敌人生成器 - 在玩家周围随机生成鬼怪敌人
+/// 敌人生成器 - 在玩家周围随机生成鬼怪敌人（使用对象池优化）
 /// </summary>
 public class EnemySpawner : MonoBehaviour
 {
     [Header("生成设置")]
-    [SerializeField] private GameObject[] enemyPrefabs;        // 敌人预制体数组
+    [SerializeField] private GameObject[] enemyPrefabs;        // 敌人预制体数组（用于EnemyPool初始化）
     [SerializeField] private float spawnInterval = 3f;        // 生成间隔时间
     [SerializeField] private int maxEnemies = 20;              // 最大敌人数量
     [SerializeField] private float spawnVariance = 2f;        // 生成位置随机偏差
@@ -20,10 +20,14 @@ public class EnemySpawner : MonoBehaviour
     [SerializeField] private float difficultyIncreaseRate = 0.1f; // 难度增长率
     [SerializeField] private float minSpawnInterval = 0.5f;    // 最小生成间隔
     
+    [Header("对象池设置")]
+    [SerializeField] private bool useObjectPool = true;       // 是否使用对象池
+    [SerializeField] private bool enableDebugLog = false;     // 是否启用调试日志
+    
     // 运行时变量
     private Transform player;
     private float nextSpawnTime;
-    private List<GameObject> spawnedEnemies = new List<GameObject>();
+    private List<EnemyAI> spawnedEnemies = new List<EnemyAI>(); // 改为EnemyAI列表以支持对象池
     private float gameStartTime;
     
     // 难度系统
@@ -84,11 +88,24 @@ public class EnemySpawner : MonoBehaviour
     }
     
     /// <summary>
-    /// 清理已销毁的敌人引用
+    /// 清理已销毁或非活跃的敌人引用
     /// </summary>
     private void CleanupDestroyedEnemies()
     {
-        spawnedEnemies.RemoveAll(enemy => enemy == null);
+        if (useObjectPool)
+        {
+            // 对象池模式：移除null、非活跃或已死亡的敌人
+            spawnedEnemies.RemoveAll(enemy => 
+                enemy == null || 
+                !enemy.gameObject.activeInHierarchy ||
+                (enemy.GetComponent<HealthSystem>()?.IsAlive == false)
+            );
+        }
+        else
+        {
+            // 传统模式：移除null的敌人
+            spawnedEnemies.RemoveAll(enemy => enemy == null);
+        }
     }
     
     /// <summary>
@@ -98,12 +115,9 @@ public class EnemySpawner : MonoBehaviour
     {
         if (enemyPrefabs.Length == 0) 
         {
-            Debug.LogError("EnemySpawner: enemyPrefabs数组为空！");
+            Debug.LogError("[EnemySpawner] enemyPrefabs数组为空！");
             return;
         }
-        
-        // 随机选择敌人类型
-        GameObject enemyPrefab = enemyPrefabs[Random.Range(0, enemyPrefabs.Length)];
         
         // 尝试多次寻找有效生成位置
         const int maxAttempts = 10;
@@ -114,20 +128,108 @@ public class EnemySpawner : MonoBehaviour
             // 检查位置是否有效
             if (IsValidSpawnPosition(spawnPosition))
             {
-                // 生成敌人
-                GameObject enemy = Instantiate(enemyPrefab, spawnPosition, Quaternion.identity);
+                EnemyAI spawnedEnemy = null;
                 
-                // 应用难度修正
-                ApplyDifficultyToEnemy(enemy);
+                if (useObjectPool && EnemyPool.Instance != null)
+                {
+                    // 使用对象池生成
+                    spawnedEnemy = SpawnEnemyFromPool(spawnPosition);
+                }
+                else
+                {
+                    // 传统方式生成
+                    spawnedEnemy = SpawnEnemyTraditional(spawnPosition);
+                }
                 
-                spawnedEnemies.Add(enemy);
-                
-                Debug.Log($"成功生成敌人: {enemy.name} 在位置 {spawnPosition}, 当前难度: {currentDifficulty:F1}");
-                return; // 成功生成，退出方法
+                if (spawnedEnemy != null)
+                {
+                    spawnedEnemies.Add(spawnedEnemy);
+                    
+                    if (enableDebugLog)
+                        Debug.Log($"[EnemySpawner] 成功生成敌人: {spawnedEnemy.name} 在位置 {spawnPosition}, 当前难度: {currentDifficulty:F1}");
+                    
+                    return; // 成功生成，退出方法
+                }
             }
         }
         
-        Debug.LogWarning($"EnemySpawner: 尝试 {maxAttempts} 次后仍未找到有效生成位置，跳过本次生成");
+        Debug.LogWarning($"[EnemySpawner] 尝试 {maxAttempts} 次后仍未找到有效生成位置，跳过本次生成");
+    }
+    
+    /// <summary>
+    /// 使用对象池生成敌人
+    /// </summary>
+    private EnemyAI SpawnEnemyFromPool(Vector3 position)
+    {
+        if (EnemyPool.Instance == null)
+        {
+            Debug.LogError("[EnemySpawner] EnemyPool未初始化，切换到传统生成模式");
+            return SpawnEnemyTraditional(position);
+        }
+        
+        // 从对象池生成随机敌人
+        EnemyAI enemy = EnemyPool.Instance.SpawnRandomEnemy(position, Quaternion.identity, currentDifficulty);
+        
+        if (enemy != null)
+        {
+            // 订阅敌人死亡事件以便从列表中移除
+            HealthSystem healthSystem = enemy.GetComponent<HealthSystem>();
+            if (healthSystem != null)
+            {
+                healthSystem.OnDeath += () => OnEnemyDeath(enemy);
+            }
+            
+            if (enableDebugLog)
+                Debug.Log($"[EnemySpawner] 从对象池生成敌人: {enemy.name}");
+        }
+        
+        return enemy;
+    }
+    
+    /// <summary>
+    /// 传统方式生成敌人
+    /// </summary>
+    private EnemyAI SpawnEnemyTraditional(Vector3 position)
+    {
+        // 随机选择敌人类型
+        GameObject enemyPrefab = enemyPrefabs[Random.Range(0, enemyPrefabs.Length)];
+        
+        // 实例化敌人
+        GameObject enemyObj = Instantiate(enemyPrefab, position, Quaternion.identity);
+        EnemyAI enemy = enemyObj.GetComponent<EnemyAI>();
+        
+        if (enemy != null)
+        {
+            // 应用难度修正
+            ApplyDifficultyToEnemyTraditional(enemyObj);
+            
+            if (enableDebugLog)
+                Debug.Log($"[EnemySpawner] 传统方式生成敌人: {enemy.name}");
+        }
+        
+        return enemy;
+    }
+    
+    /// <summary>
+    /// 敌人死亡回调
+    /// </summary>
+    private void OnEnemyDeath(EnemyAI enemy)
+    {
+        if (enemy == null) return;
+        
+        // 从生成列表中移除
+        spawnedEnemies.Remove(enemy);
+        
+        if (useObjectPool && EnemyPool.Instance != null)
+        {
+            // 回收到对象池
+            EnemyPool.Instance.RecycleEnemy(enemy);
+            
+            if (enableDebugLog)
+                Debug.Log($"[EnemySpawner] 敌人已死亡并回收到对象池: {enemy.name}");
+        }
+        
+        // 传统模式下，敌人会自动销毁，无需额外处理
     }
     
     /// <summary>
@@ -178,9 +280,9 @@ public class EnemySpawner : MonoBehaviour
     }
     
     /// <summary>
-    /// 对敌人应用难度修正
+    /// 对敌人应用难度修正（传统模式）
     /// </summary>
-    private void ApplyDifficultyToEnemy(GameObject enemy)
+    private void ApplyDifficultyToEnemyTraditional(GameObject enemy)
     {
         // 增强敌人血量
         HealthSystem health = enemy.GetComponent<HealthSystem>();
@@ -225,11 +327,11 @@ public class EnemySpawner : MonoBehaviour
     [ContextMenu("清除所有敌人")]
     public void ClearAllEnemies()
     {
-        foreach (GameObject enemy in spawnedEnemies)
+        foreach (EnemyAI enemy in spawnedEnemies)
         {
             if (enemy != null)
             {
-                Destroy(enemy);
+                Destroy(enemy.gameObject);
             }
         }
         spawnedEnemies.Clear();

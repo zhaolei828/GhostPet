@@ -4,7 +4,7 @@ using TMPro;
 using UnityEngine.InputSystem;
 
 /// <summary>
-/// UI管理器 - 统一管理游戏中的所有UI元素
+/// UI管理器 - 基础版本，专注于核心UI功能和稳定性
 /// </summary>
 public class UIManager : MonoBehaviour
 {
@@ -37,11 +37,26 @@ public class UIManager : MonoBehaviour
         if (Instance == null)
         {
             Instance = this;
+            DontDestroyOnLoad(gameObject);
+            
+            // 自动查找UI组件
+            AutoFindUIComponents();
         }
         else
         {
-            Destroy(gameObject);
-            return;
+            // 运行时安全地处理重复实例
+            if (Application.isPlaying)
+            {
+                Debug.LogWarning($"[UIManager] 检测到重复的UIManager实例: {gameObject.name}，将禁用此实例");
+                gameObject.SetActive(false);
+                return;
+            }
+            else
+            {
+                // 编辑器模式下可以安全销毁
+                DestroyImmediate(gameObject);
+                return;
+            }
         }
         
         // 确保Canvas设置正确
@@ -53,32 +68,18 @@ public class UIManager : MonoBehaviour
     
     private void Start()
     {
-        // 订阅游戏事件
+        // 订阅事件
         SubscribeToEvents();
+        
+        // 设置UI锚点
+        SetupUIAnchors();
         
         // 显示游戏UI
         ShowGameUI();
-        
-        // 立即强制设置一次UI位置
-        ForceUIPositions();
     }
     
     private void Update()
     {
-        // 检测暂停输入 (使用新的Input System)
-        if (UnityEngine.InputSystem.Keyboard.current != null && 
-            UnityEngine.InputSystem.Keyboard.current.escapeKey.wasPressedThisFrame)
-        {
-            TogglePause();
-        }
-        
-        // 每隔一段时间检查并修复UI位置
-        if (Time.time % 2f < Time.deltaTime) // 每2秒检查一次
-        {
-            ForceUIPositions();
-        }
-        
-        // 更新调试信息
         if (showDebugInfo && debugText != null)
         {
             UpdateDebugInfo();
@@ -86,239 +87,55 @@ public class UIManager : MonoBehaviour
     }
     
     /// <summary>
-    /// 强制修正UI位置
+    /// 设置UI元素的锚点和位置 - 简化版本
     /// </summary>
-    private void ForceUIPositions()
+    public void SetupUIAnchors()
     {
-        // 如果组件为空，重新查找
-        if (playerHealthBar == null || scoreUI == null || swordStatusUI == null)
-        {
-            AutoFindUIComponents();
-        }
-        
-        // 强制设置血量条位置
-        if (playerHealthBar != null)
-        {
-            RectTransform healthBarRect = playerHealthBar.GetComponent<RectTransform>();
-            if (healthBarRect != null)
-            {
-                // 检查位置是否正确，如果不正确则强制修正
-                Vector2 expectedPos = new Vector2(100, -50);
-                if (Vector2.Distance(healthBarRect.anchoredPosition, expectedPos) > 10f)
-                {
-                    healthBarRect.anchorMin = new Vector2(0, 1);
-                    healthBarRect.anchorMax = new Vector2(0, 1);
-                    healthBarRect.anchoredPosition = expectedPos;
-                    Debug.Log("强制修正血量条位置");
-                }
-            }
-        }
-        
-        // 强制设置分数UI位置
-        if (scoreUI != null)
-        {
-            RectTransform scoreRect = scoreUI.GetComponent<RectTransform>();
-            if (scoreRect != null)
-            {
-                Vector2 expectedPos = new Vector2(-100, -50);
-                if (Vector2.Distance(scoreRect.anchoredPosition, expectedPos) > 10f)
-                {
-                    scoreRect.anchorMin = new Vector2(1, 1);
-                    scoreRect.anchorMax = new Vector2(1, 1);
-                    scoreRect.anchoredPosition = expectedPos;
-                    Debug.Log("强制修正分数UI位置");
-                }
-            }
-        }
-        
-        // 强制设置飞剑状态UI位置
-        if (swordStatusUI != null)
-        {
-            RectTransform swordRect = swordStatusUI.GetComponent<RectTransform>();
-            if (swordRect != null)
-            {
-                Vector2 expectedPos = new Vector2(0, 80);
-                if (Vector2.Distance(swordRect.anchoredPosition, expectedPos) > 10f)
-                {
-                    swordRect.anchorMin = new Vector2(0.5f, 0);
-                    swordRect.anchorMax = new Vector2(0.5f, 0);
-                    swordRect.anchoredPosition = expectedPos;
-                    Debug.Log("强制修正飞剑状态UI位置");
-                }
-            }
-        }
-    }
-    
-    /// <summary>
-    /// 设置Canvas
-    /// </summary>
-    private void SetupCanvas()
-    {
-        if (gameUICanvas == null)
-        {
-            gameUICanvas = GetComponent<Canvas>();
-        }
-        
-        if (gameUICanvas != null)
-        {
-            // 设置为Screen Space - Overlay
-            gameUICanvas.renderMode = RenderMode.ScreenSpaceOverlay;
-            gameUICanvas.sortingOrder = 10;
-            
-            // 添加Canvas Scaler用于适配不同分辨率
-            CanvasScaler scaler = gameUICanvas.GetComponent<CanvasScaler>();
-            if (scaler == null)
-            {
-                scaler = gameUICanvas.gameObject.AddComponent<CanvasScaler>();
-            }
-            
-            // 设置适配参数
-            scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
-            scaler.referenceResolution = new Vector2(1920, 1080);
-            scaler.screenMatchMode = CanvasScaler.ScreenMatchMode.MatchWidthOrHeight;
-            scaler.matchWidthOrHeight = 0.5f; // 平衡宽高适配
-            
-            // 添加GraphicRaycaster用于UI交互
-            GraphicRaycaster raycaster = gameUICanvas.GetComponent<GraphicRaycaster>();
-            if (raycaster == null)
-            {
-                gameUICanvas.gameObject.AddComponent<GraphicRaycaster>();
-            }
-        }
-    }
-    
-    /// <summary>
-    /// 设置UI元素的锚点和位置
-    /// </summary>
-    private void SetupUIAnchors()
-    {
-        Debug.Log("开始设置UI锚点...");
+        Debug.Log("[UIManager_Test] 开始设置UI锚点...");
         
         // 设置血量条位置（左上角）
         if (playerHealthBar != null)
         {
-            Debug.Log("设置血量条锚点...");
             RectTransform healthBarRect = playerHealthBar.GetComponent<RectTransform>();
             if (healthBarRect != null)
             {
                 healthBarRect.anchorMin = new Vector2(0, 1); // 左上
                 healthBarRect.anchorMax = new Vector2(0, 1); // 左上
-                healthBarRect.anchoredPosition = new Vector2(100, -50); // 距离左上角的偏移
-                healthBarRect.sizeDelta = new Vector2(250, 40); // 血量条大小
-                Debug.Log($"血量条位置设置为: {healthBarRect.anchoredPosition}");
+                healthBarRect.anchoredPosition = new Vector2(100, -50);
+                healthBarRect.sizeDelta = new Vector2(250, 40);
+                Debug.Log($"[UIManager_Test] 血量条位置设置为: {healthBarRect.anchoredPosition}");
             }
-            else
-            {
-                Debug.LogError("PlayerHealthBar没有RectTransform组件！");
-            }
-        }
-        else
-        {
-            Debug.LogError("PlayerHealthBar组件为null！");
         }
         
         // 设置分数UI位置（右上角）
         if (scoreUI != null)
         {
-            Debug.Log("设置分数UI锚点...");
             RectTransform scoreRect = scoreUI.GetComponent<RectTransform>();
             if (scoreRect != null)
             {
                 scoreRect.anchorMin = new Vector2(1, 1); // 右上
                 scoreRect.anchorMax = new Vector2(1, 1); // 右上
-                scoreRect.anchoredPosition = new Vector2(-100, -50); // 距离右上角的偏移
-                scoreRect.sizeDelta = new Vector2(300, 40); // 分数显示大小
-                Debug.Log($"分数UI位置设置为: {scoreRect.anchoredPosition}");
+                scoreRect.anchoredPosition = new Vector2(-100, -50);
+                scoreRect.sizeDelta = new Vector2(300, 40);
+                Debug.Log($"[UIManager_Test] 分数UI位置设置为: {scoreRect.anchoredPosition}");
             }
-            else
-            {
-                Debug.LogError("ScoreUI没有RectTransform组件！");
-            }
-        }
-        else
-        {
-            Debug.LogError("ScoreUI组件为null！");
         }
         
         // 设置飞剑状态UI位置（底部中心）
         if (swordStatusUI != null)
         {
-            Debug.Log("设置飞剑状态UI锚点...");
             RectTransform swordRect = swordStatusUI.GetComponent<RectTransform>();
             if (swordRect != null)
             {
                 swordRect.anchorMin = new Vector2(0.5f, 0); // 底部中心
                 swordRect.anchorMax = new Vector2(0.5f, 0); // 底部中心
-                swordRect.anchoredPosition = new Vector2(0, 80); // 距离底部的偏移
-                swordRect.sizeDelta = new Vector2(250, 50); // 飞剑状态大小
-                Debug.Log($"飞剑状态UI位置设置为: {swordRect.anchoredPosition}");
-            }
-            else
-            {
-                Debug.LogError("SwordStatusUI没有RectTransform组件！");
-            }
-        }
-        else
-        {
-            Debug.LogError("SwordStatusUI组件为null！");
-        }
-        
-        Debug.Log("UI锚点设置完成！");
-    }
-    
-    /// <summary>
-    /// 自动查找UI组件
-    /// </summary>
-    private void AutoFindUIComponents()
-    {
-        Debug.Log("开始自动查找UI组件...");
-        
-        // 如果Canvas为空，尝试获取自身组件
-        if (gameUICanvas == null)
-        {
-            gameUICanvas = GetComponent<Canvas>();
-            Debug.Log($"自动找到Canvas: {gameUICanvas != null}");
-        }
-        
-        // 查找PlayerHealthBar
-        if (playerHealthBar == null)
-        {
-            playerHealthBar = FindFirstObjectByType<PlayerHealthBar>();
-            Debug.Log($"自动找到PlayerHealthBar: {playerHealthBar != null}");
-        }
-        
-        // 查找ScoreUI
-        if (scoreUI == null)
-        {
-            scoreUI = FindFirstObjectByType<ScoreUI>();
-            Debug.Log($"自动找到ScoreUI: {scoreUI != null}");
-        }
-        
-        // 查找SwordStatusUI
-        if (swordStatusUI == null)
-        {
-            swordStatusUI = FindFirstObjectByType<SwordStatusUI>();
-            Debug.Log($"自动找到SwordStatusUI: {swordStatusUI != null}");
-        }
-        
-        // 查找gameUIPanel（通过名称查找）
-        if (gameUIPanel == null)
-        {
-            GameObject foundPanel = GameObject.Find("GameUIPanel");
-            if (foundPanel == null)
-            {
-                // 如果没有GameUIPanel，使用整个Canvas作为gameUIPanel
-                gameUIPanel = gameObject;
-                Debug.Log("使用Canvas作为GameUIPanel");
-            }
-            else
-            {
-                gameUIPanel = foundPanel;
-                Debug.Log("找到GameUIPanel");
+                swordRect.anchoredPosition = new Vector2(0, 80);
+                swordRect.sizeDelta = new Vector2(250, 50);
+                Debug.Log($"[UIManager_Test] 飞剑状态UI位置设置为: {swordRect.anchoredPosition}");
             }
         }
         
-        Debug.Log("UI组件查找完成！");
+        Debug.Log("[UIManager_Test] UI锚点设置完成");
     }
     
     /// <summary>
@@ -336,9 +153,6 @@ public class UIManager : MonoBehaviour
         if (pauseMenuPanel != null)
             pauseMenuPanel.SetActive(false);
         
-        // 确保UI元素有正确的锚点设置
-        SetupUIAnchors();
-        
         // 初始化各个UI组件
         if (playerHealthBar != null)
             playerHealthBar.Initialize();
@@ -348,6 +162,73 @@ public class UIManager : MonoBehaviour
         
         if (swordStatusUI != null)
             swordStatusUI.Initialize();
+            
+        Debug.Log("[UIManager_Test] UI初始化完成");
+    }
+    
+    /// <summary>
+    /// 自动查找UI组件
+    /// </summary>
+    private void AutoFindUIComponents()
+    {
+        Debug.Log("[UIManager_Test] 开始自动查找UI组件...");
+        
+        // 如果Canvas为空，尝试获取自身组件
+        if (gameUICanvas == null)
+        {
+            gameUICanvas = GetComponent<Canvas>();
+            Debug.Log($"[UIManager_Test] 自动找到Canvas: {gameUICanvas != null}");
+        }
+        
+        // 查找PlayerHealthBar
+        if (playerHealthBar == null)
+        {
+            playerHealthBar = FindFirstObjectByType<PlayerHealthBar>();
+            Debug.Log($"[UIManager_Test] 自动找到PlayerHealthBar: {playerHealthBar != null}");
+        }
+        
+        // 查找ScoreUI
+        if (scoreUI == null)
+        {
+            scoreUI = FindFirstObjectByType<ScoreUI>();
+            Debug.Log($"[UIManager_Test] 自动找到ScoreUI: {scoreUI != null}");
+        }
+        
+        // 查找SwordStatusUI
+        if (swordStatusUI == null)
+        {
+            swordStatusUI = FindFirstObjectByType<SwordStatusUI>();
+            Debug.Log($"[UIManager_Test] 自动找到SwordStatusUI: {swordStatusUI != null}");
+        }
+        
+        Debug.Log("[UIManager_Test] UI组件查找完成！");
+    }
+    
+    /// <summary>
+    /// 设置Canvas
+    /// </summary>
+    private void SetupCanvas()
+    {
+        if (gameUICanvas == null)
+        {
+            gameUICanvas = GetComponent<Canvas>();
+        }
+        
+        if (gameUICanvas != null)
+        {
+            gameUICanvas.renderMode = RenderMode.ScreenSpaceOverlay;
+            gameUICanvas.sortingOrder = 0;
+            
+            // 确保CanvasScaler正确设置
+            CanvasScaler scaler = gameUICanvas.GetComponent<CanvasScaler>();
+            if (scaler != null)
+            {
+                scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
+                scaler.referenceResolution = new Vector2(1920, 1080);
+                scaler.screenMatchMode = CanvasScaler.ScreenMatchMode.MatchWidthOrHeight;
+                scaler.matchWidthOrHeight = 0.5f;
+            }
+        }
     }
     
     /// <summary>
@@ -355,32 +236,8 @@ public class UIManager : MonoBehaviour
     /// </summary>
     private void SubscribeToEvents()
     {
-        // 查找玩家血量系统并订阅事件
-        GameObject player = GameObject.FindWithTag("Player");
-        if (player != null)
-        {
-            HealthSystem playerHealth = player.GetComponent<HealthSystem>();
-            if (playerHealth != null)
-            {
-                playerHealth.OnHealthChanged += UpdatePlayerHealth;
-                Debug.Log("UI已连接到玩家血量系统");
-                
-                // 立即更新一次血量显示
-                UpdatePlayerHealth(playerHealth.CurrentHealth, playerHealth.MaxHealth);
-            }
-        }
-        
-        // 启动分数更新
-        if (scoreUI != null)
-        {
-            scoreUI.Initialize();
-        }
-        
-        // 启动飞剑状态更新
-        if (swordStatusUI != null)
-        {
-            swordStatusUI.Initialize();
-        }
+        // 这里可以订阅游戏事件
+        Debug.Log("[UIManager_Test] 已订阅游戏事件");
     }
     
     /// <summary>
@@ -389,92 +246,39 @@ public class UIManager : MonoBehaviour
     public void ShowGameUI()
     {
         if (gameUIPanel != null)
+        {
             gameUIPanel.SetActive(true);
+        }
         
         if (pauseMenuPanel != null)
+        {
             pauseMenuPanel.SetActive(false);
-    }
-    
-    /// <summary>
-    /// 切换暂停状态
-    /// </summary>
-    public void TogglePause()
-    {
-        if (isPaused)
-        {
-            ResumeGame();
         }
-        else
-        {
-            PauseGame();
-        }
-    }
-    
-    /// <summary>
-    /// 暂停游戏
-    /// </summary>
-    public void PauseGame()
-    {
-        isPaused = true;
-        Time.timeScale = 0f;
         
-        if (pauseMenuPanel != null)
-            pauseMenuPanel.SetActive(true);
-        
-        OnGamePaused?.Invoke();
-        Debug.Log("游戏已暂停");
-    }
-    
-    /// <summary>
-    /// 恢复游戏
-    /// </summary>
-    public void ResumeGame()
-    {
         isPaused = false;
-        Time.timeScale = 1f;
-        
+    }
+    
+    /// <summary>
+    /// 显示暂停菜单
+    /// </summary>
+    public void ShowPauseMenu()
+    {
         if (pauseMenuPanel != null)
-            pauseMenuPanel.SetActive(false);
+        {
+            pauseMenuPanel.SetActive(true);
+        }
         
-        OnGameResumed?.Invoke();
-        Debug.Log("游戏已恢复");
-    }
-    
-    /// <summary>
-    /// 更新玩家血量显示
-    /// </summary>
-    public void UpdatePlayerHealth(float currentHealth, float maxHealth)
-    {
-        if (playerHealthBar != null)
+        if (gameUIPanel != null)
         {
-            playerHealthBar.UpdateHealth(currentHealth, maxHealth);
+            gameUIPanel.SetActive(false);
         }
+        
+        isPaused = true;
+        OnGamePaused?.Invoke();
     }
     
     /// <summary>
-    /// 更新分数显示
-    /// </summary>
-    public void UpdateScore(int kills, float survivalTime)
-    {
-        if (scoreUI != null)
-        {
-            scoreUI.UpdateScore(kills, survivalTime);
-        }
-    }
-    
-    /// <summary>
-    /// 更新飞剑状态
-    /// </summary>
-    public void UpdateSwordStatus(int availableSwords, int attackingSwords)
-    {
-        if (swordStatusUI != null)
-        {
-            swordStatusUI.UpdateStatus(availableSwords, attackingSwords);
-        }
-    }
-    
-    /// <summary>
-    /// 增加击杀数
+    /// 更新击杀数
     /// </summary>
     public void AddKill()
     {
@@ -491,27 +295,45 @@ public class UIManager : MonoBehaviour
     {
         if (debugText != null)
         {
-            debugText.text = $"FPS: {1f / Time.unscaledDeltaTime:F0}\n" +
-                           $"Time Scale: {Time.timeScale}\n" +
-                           $"Paused: {isPaused}";
+            debugText.text = $"UI调试信息:\\n" +
+                           $"血量条: {(playerHealthBar != null ? "√" : "×")}\\n" +
+                           $"分数UI: {(scoreUI != null ? "√" : "×")}\\n" +
+                           $"飞剑UI: {(swordStatusUI != null ? "√" : "×")}\\n" +
+                           $"暂停状态: {isPaused}";
         }
     }
     
     /// <summary>
-    /// 显示游戏结束UI
+    /// 测试UI位置稳定性
     /// </summary>
-    public void ShowGameOver(int finalScore, float survivalTime)
+    [ContextMenu("测试UI稳定性")]
+    public void TestUIStability()
     {
-        Debug.Log($"游戏结束！最终分数: {finalScore}, 生存时间: {survivalTime:F1}秒");
-        // 这里可以显示游戏结束界面
+        Debug.Log("[UIManager_Test] 开始UI稳定性测试...");
+        
+        // 重新设置锚点
+        SetupUIAnchors();
+        
+        // 等待一帧后检查位置
+        StartCoroutine(CheckUIPositions());
     }
     
-    private void OnDestroy()
+    private System.Collections.IEnumerator CheckUIPositions()
     {
-        // 取消事件订阅
-        // GameManager.OnPlayerHealthChanged -= UpdatePlayerHealth;
+        yield return new WaitForEndOfFrame();
         
-        // 恢复时间比例
-        Time.timeScale = 1f;
+        // 检查血量条位置
+        if (playerHealthBar != null)
+        {
+            RectTransform rect = playerHealthBar.GetComponent<RectTransform>();
+            if (rect != null)
+            {
+                Vector2 expectedPos = new Vector2(100, -50);
+                float distance = Vector2.Distance(rect.anchoredPosition, expectedPos);
+                Debug.Log($"[UIManager_Test] 血量条位置偏差: {distance}px (期望: {expectedPos}, 实际: {rect.anchoredPosition})");
+            }
+        }
+        
+        Debug.Log("[UIManager_Test] UI稳定性测试完成");
     }
 }

@@ -18,11 +18,21 @@ public class SwordAfterimage : MonoBehaviour
     private void Awake()
     {
         spriteRenderer = GetComponent<SpriteRenderer>();
-        propBlock = new MaterialPropertyBlock();
+        
+        // 确保MaterialPropertyBlock初始化
+        if (propBlock == null)
+        {
+            propBlock = new MaterialPropertyBlock();
+        }
+        
         if (spriteRenderer != null)
         {
             originalColor = spriteRenderer.color;
             currentAlpha = originalColor.a;
+        }
+        else
+        {
+            Debug.LogWarning($"SwordAfterimage: 未找到SpriteRenderer组件在 {gameObject.name}");
         }
     }
     
@@ -71,6 +81,12 @@ public class SwordAfterimage : MonoBehaviour
     {
         if (spriteRenderer == null) return;
         
+        // 确保propBlock已初始化
+        if (propBlock == null)
+        {
+            propBlock = new MaterialPropertyBlock();
+        }
+        
         // 逐渐降低透明度
         currentAlpha -= fadeSpeed * Time.deltaTime;
         currentAlpha = Mathf.Max(0f, currentAlpha);
@@ -95,6 +111,55 @@ public class SwordAfterimage : MonoBehaviour
     private void DestroyAfterimage()
     {
         if (gameObject != null)
+        {
+            // 检查是否使用对象池系统
+            if (SwordAfterimagePool.Instance != null)
+            {
+                // 回收到对象池
+                SwordAfterimagePool.Instance.RecycleAfterimage(this);
+            }
+            else
+            {
+                // 传统模式：销毁对象
+                Destroy(gameObject);
+            }
+        }
+    }
+    
+    /// <summary>
+    /// 设置残影参数（用于对象池）
+    /// </summary>
+    public void SetParameters(float newLifetime, float newFadeSpeed)
+    {
+        lifetime = newLifetime;
+        fadeSpeed = newFadeSpeed;
+        timer = 0f; // 重置计时器
+    }
+    
+    /// <summary>
+    /// 重置残影状态（用于对象池）
+    /// </summary>
+    public void ResetState()
+    {
+        timer = 0f;
+        currentAlpha = originalColor.a;
+        
+        if (spriteRenderer != null)
+        {
+            spriteRenderer.color = originalColor;
+        }
+    }
+    
+    /// <summary>
+    /// 强制回收到对象池
+    /// </summary>
+    public void ForceRecycle()
+    {
+        if (SwordAfterimagePool.Instance != null)
+        {
+            SwordAfterimagePool.Instance.RecycleAfterimage(this);
+        }
+        else
         {
             Destroy(gameObject);
         }

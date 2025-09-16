@@ -37,6 +37,7 @@ public class HealthSystem : MonoBehaviour
     /// <param name="source">伤害来源</param>
     public void TakeDamage(float damage, GameObject source = null)
     {
+        Debug.Log($"[HealthSystem] TakeDamage called on '{gameObject.name}' for {damage} damage. IsAlive: {IsAlive}, isInvulnerable: {isInvulnerable}.");
         if (damage <= 0 || !IsAlive || isInvulnerable) return;
         
         // 扣除血量
@@ -50,10 +51,11 @@ public class HealthSystem : MonoBehaviour
         OnHealthChanged?.Invoke(currentHealth, maxHealth);
         
         Debug.Log($"{gameObject.name} 受到 {damage} 点伤害，剩余血量: {currentHealth}");
-        
+
         // 检查死亡
         if (currentHealth <= 0)
         {
+            Debug.Log($"[HealthSystem] {gameObject.name} 血量降至0，即将调用Die()");
             Die();
         }
     }
@@ -110,9 +112,11 @@ public class HealthSystem : MonoBehaviour
     /// </summary>
     public void Die()
     {
-        if (!IsAlive) return;
+        Debug.Log($"[HealthSystem] Die() called on {gameObject.name}, IsAlive: {IsAlive}");
+        // 移除IsAlive检查，因为我们想要触发死亡事件即使currentHealth已经为0
         
         currentHealth = 0;
+        Debug.Log($"[HealthSystem] Invoking OnDeath event for {gameObject.name}");
         OnDeath?.Invoke();
         OnHealthChanged?.Invoke(currentHealth, maxHealth);
         
@@ -146,13 +150,19 @@ public class HealthSystem : MonoBehaviour
     /// </summary>
     private void ShowDamageNumber(float damage)
     {
+        Debug.Log($"[HealthSystem] ShowDamageNumber called for {gameObject.name}, damage: {damage}");
         if (DamageNumberManager.Instance != null)
         {
+            Debug.Log($"[HealthSystem] DamageNumberManager.Instance found, calling ShowDamageNumber");
             // 判断是玩家还是敌人
             DamageType damageType = gameObject.CompareTag("Player") ? 
                 DamageType.PlayerDamage : DamageType.EnemyDamage;
             
             DamageNumberManager.Instance.ShowDamageNumber(transform.position, damage, damageType);
+        }
+        else
+        {
+            Debug.LogWarning($"[HealthSystem] DamageNumberManager.Instance is null! Cannot show damage number for {gameObject.name}");
         }
     }
     

@@ -2,12 +2,12 @@ using System.Collections;
 using UnityEngine;
 
 /// <summary>
-/// 飞剑残影管理器 - 负责生成和管理飞剑残影效果
+/// 飞剑残影管理器 - 负责生成和管理飞剑残影效果（使用对象池优化）
 /// </summary>
 public class SwordAfterimageManager : MonoBehaviour
 {
     [Header("残影生成设置")]
-    [SerializeField] private GameObject afterimagePrefab; // 残影预制体
+    [SerializeField] private GameObject afterimagePrefab; // 残影预制体（用于传统模式）
     [SerializeField] private float spawnInterval = 0.1f; // 生成间隔（秒）
     [SerializeField] private float minMoveDistance = 0.2f; // 最小移动距离才生成残影
     [SerializeField] private float initialAlpha = 0.6f; // 初始透明度
@@ -16,6 +16,12 @@ public class SwordAfterimageManager : MonoBehaviour
     [Header("残影外观")]
     [SerializeField] private Color afterimageColor = Color.cyan; // 残影颜色
     [SerializeField] private bool useOriginalColor = true; // 是否使用原始颜色
+    [SerializeField] private float afterimageLifetime = 0.5f; // 残影生命时长
+    [SerializeField] private float afterimageFadeSpeed = 3f; // 残影淡出速度
+    
+    [Header("对象池设置")]
+    [SerializeField] private bool useObjectPool = true; // 是否使用对象池
+    [SerializeField] private bool enableDebugLog = false; // 是否启用调试日志
     
     private SpriteRenderer swordSpriteRenderer;
     private Vector3 lastAfterimagePosition;
@@ -105,23 +111,84 @@ public class SwordAfterimageManager : MonoBehaviour
         if (swordSpriteRenderer == null || swordSpriteRenderer.sprite == null)
             return;
         
-        // 在当前位置创建残影
-        GameObject afterimage = CreateAfterimageObject();
-        afterimage.transform.position = transform.position;
-        afterimage.transform.rotation = transform.rotation;
-        afterimage.transform.localScale = transform.localScale;
+        Color colorToUse = useOriginalColor ? swordSpriteRenderer.color : afterimageColor;
         
-        // 初始化残影组件
-        SwordAfterimage afterimageComponent = afterimage.GetComponent<SwordAfterimage>();
-        if (afterimageComponent != null)
+        SwordAfterimage afterimageComponent = null;
+        
+        // 使用对象池或传统方式创建残影
+        if (useObjectPool && SwordAfterimagePool.Instance != null)
         {
-            Color colorToUse = useOriginalColor ? swordSpriteRenderer.color : afterimageColor;
-            afterimageComponent.Initialize(swordSpriteRenderer.sprite, colorToUse, initialAlpha);
+            afterimageComponent = CreateAfterimageFromPool(colorToUse);
+        }
+        else
+        {
+            afterimageComponent = CreateAfterimageTraditional(colorToUse);
+        }
+        
+        if (afterimageComponent != null && enableDebugLog)
+        {
+            Debug.Log($"[SwordAfterimageManager] 生成残影: 位置={transform.position}, 使用对象池={useObjectPool}");
         }
         
         // 更新记录
         lastAfterimagePosition = transform.position;
         lastSpawnTime = Time.time;
+    }
+    
+    /// <summary>
+    /// 使用对象池创建残影
+    /// </summary>
+    private SwordAfterimage CreateAfterimageFromPool(Color color)
+    {
+        if (SwordAfterimagePool.Instance == null)
+        {
+            Debug.LogError("[SwordAfterimageManager] SwordAfterimagePool未初始化，切换到传统模式");
+            return CreateAfterimageTraditional(color);
+        }
+        
+        // 从对象池创建残影
+        SwordAfterimage afterimage = SwordAfterimagePool.Instance.CreateAfterimage(
+            swordSpriteRenderer.sprite,
+            color,
+            transform.position,
+            transform.rotation,
+            transform.localScale,
+            initialAlpha,
+            afterimageLifetime,
+            afterimageFadeSpeed
+        );
+        
+        if (enableDebugLog && afterimage != null)
+            Debug.Log($"[SwordAfterimageManager] 从对象池创建残影: {afterimage.name}");
+        
+        return afterimage;
+    }
+    
+    /// <summary>
+    /// 传统方式创建残影
+    /// </summary>
+    private SwordAfterimage CreateAfterimageTraditional(Color color)
+    {
+        // 在当前位置创建残影
+        GameObject afterimageObj = CreateAfterimageObject();
+        afterimageObj.transform.position = transform.position;
+        afterimageObj.transform.rotation = transform.rotation;
+        afterimageObj.transform.localScale = transform.localScale;
+        
+        // 初始化残影组件
+        SwordAfterimage afterimageComponent = afterimageObj.GetComponent<SwordAfterimage>();
+        if (afterimageComponent != null)
+        {
+            afterimageComponent.Initialize(swordSpriteRenderer.sprite, color, initialAlpha);
+            
+            // 设置参数
+            afterimageComponent.SetParameters(afterimageLifetime, afterimageFadeSpeed);
+            
+            if (enableDebugLog)
+                Debug.Log($"[SwordAfterimageManager] 传统方式创建残影: {afterimageComponent.name}");
+        }
+        
+        return afterimageComponent;
     }
     
     /// <summary>
@@ -137,6 +204,12 @@ public class SwordAfterimageManager : MonoBehaviour
         {
             // 创建简单的残影对象
             GameObject afterimage = new GameObject("SwordAfterimage");
+            
+            // 添加SpriteRenderer组件 - 修复警告
+            SpriteRenderer spriteRenderer = afterimage.AddComponent<SpriteRenderer>();
+            spriteRenderer.sprite = null; // 可以后续设置
+            spriteRenderer.color = Color.white;
+            
             afterimage.AddComponent<SwordAfterimage>();
             return afterimage;
         }

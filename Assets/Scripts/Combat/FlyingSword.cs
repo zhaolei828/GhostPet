@@ -199,12 +199,18 @@ public class FlyingSword : MonoBehaviour
         
         if (attackTarget != null)
         {
+            Debug.Log($"[FlyingSword] HitTarget: Attempting to damage '{attackTarget.name}'.");
             // 对目标造成伤害
             HealthSystem targetHealth = attackTarget.GetComponent<HealthSystem>();
             if (targetHealth != null)
             {
+                Debug.Log($"[FlyingSword] HitTarget: Found HealthSystem on '{attackTarget.name}'. Calling TakeDamage with {damage} damage.");
                 targetHealth.TakeDamage(damage, gameObject);
                 Debug.Log($"飞剑命中 {attackTarget.name}，造成 {damage} 点伤害");
+            }
+            else
+            {
+                Debug.LogError($"[FlyingSword] HitTarget: HealthSystem component not found on '{attackTarget.name}'!");
             }
             
             // 也可以尝试调用敌人的受伤方法
@@ -270,6 +276,7 @@ public class FlyingSword : MonoBehaviour
     /// </summary>
     private void OnTriggerEnter2D(Collider2D other)
     {
+        Debug.Log($"[FlyingSword] OnTriggerEnter2D: Collided with '{other.name}' which has tag '{other.tag}'. Current state: {currentState}, hasHitTarget: {hasHitTarget}.");
         if (currentState == SwordState.Attacking && !hasHitTarget)
         {
             if (other.transform == attackTarget)
