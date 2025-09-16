@@ -24,12 +24,27 @@ public class FlyingSwordManager : MonoBehaviour
     private Transform player;
     private float lastAttackTime;
     
+    // 公开属性
+    public Transform Player => player;
+    
     // 目标检测
     private List<Transform> enemiesInRange = new List<Transform>();
     
     private void Start()
     {
-        player = transform;
+        // 查找玩家对象
+        GameObject playerObj = GameObject.FindWithTag("Player");
+        if (playerObj != null)
+        {
+            player = playerObj.transform;
+            Debug.Log($"[FlyingSwordManager] 找到玩家: {playerObj.name}");
+        }
+        else
+        {
+            Debug.LogError("[FlyingSwordManager] 未找到带有Player标签的GameObject！");
+            player = transform; // 降级处理
+        }
+        
         InitializeSwords();
     }
     
@@ -207,5 +222,4 @@ public class FlyingSwordManager : MonoBehaviour
     // 属性访问器
     public float OrbitRadius => orbitRadius;
     public float OrbitSpeed => orbitSpeed;
-    public Transform Player => player;
 }

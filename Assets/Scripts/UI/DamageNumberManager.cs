@@ -164,16 +164,16 @@ public class DamageNumberManager : MonoBehaviour
         
         // 将世界坐标转换为屏幕坐标
         Vector3 screenPos = mainCamera.WorldToScreenPoint(worldPosition + spawnOffset);
-        
-        // 添加随机偏移，避免重叠
-        screenPos.x += Random.Range(-randomRange * 30, randomRange * 30);
-        screenPos.y += Random.Range(-randomRange * 15, randomRange * 30);
-        
+            
+            // 添加随机偏移，避免重叠
+            screenPos.x += Random.Range(-randomRange * 30, randomRange * 30);
+            screenPos.y += Random.Range(-randomRange * 15, randomRange * 30);
+            
         // 设置UI位置
         RectTransform rectTransform = damageNumber.GetComponent<RectTransform>();
-        if (rectTransform != null)
-        {
-            rectTransform.position = screenPos;
+            if (rectTransform != null)
+            {
+                rectTransform.position = screenPos;
         }
     }
     
@@ -363,7 +363,7 @@ public class DamageNumberManager : MonoBehaviour
         // 添加RectTransform
         RectTransform rectTransform = damageObj.AddComponent<RectTransform>();
         rectTransform.sizeDelta = new Vector2(100, 50);
-
+        
         // 添加TextMeshProUGUI组件
         TextMeshProUGUI textComponent = damageObj.AddComponent<TextMeshProUGUI>();
         textComponent.text = damage.ToString("F0");
@@ -406,7 +406,7 @@ public class DamageNumberManager : MonoBehaviour
         if (enableDebugLog)
             Debug.Log($"[DamageNumberManager] 传统方式显示伤害数字: {damage} ({damageType})");
     }
-
+    
     /// <summary>
     /// 传统伤害数字动画协程
     /// </summary>
