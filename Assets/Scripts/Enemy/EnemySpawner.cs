@@ -257,6 +257,9 @@ public class EnemySpawner : MonoBehaviour
     /// <summary>
     /// 检查生成位置是否有效
     /// </summary>
+    // 预分配缓冲区以避免内存分配
+    private static Collider2D[] spawnCheckBuffer = new Collider2D[5];
+    
     private bool IsValidSpawnPosition(Vector3 position)
     {
         // 检查是否离玩家太近

@@ -27,8 +27,11 @@ public class FlyingSwordManager : MonoBehaviour
     // 公开属性
     public Transform Player => player;
     
-    // 目标检测
+    // 目标检测 - 优化内存分配
     private List<Transform> enemiesInRange = new List<Transform>();
+    private Collider2D[] detectionBuffer = new Collider2D[10]; // 预分配缓冲区
+    private float lastDetectionTime = 0f;
+    private float detectionInterval = 0.1f; // 每0.1秒检测一次，而不是每帧
     
     private void Start()
     {
@@ -51,7 +54,14 @@ public class FlyingSwordManager : MonoBehaviour
     private void Update()
     {
         UpdateSwordOrbits();
-        DetectEnemies();
+        
+        // 使用间隔检测而不是每帧检测
+        if (Time.time >= lastDetectionTime + detectionInterval)
+        {
+            DetectEnemies();
+            lastDetectionTime = Time.time;
+        }
+        
         TryAutoAttack();
     }
     
@@ -60,9 +70,38 @@ public class FlyingSwordManager : MonoBehaviour
     /// </summary>
     private void InitializeSwords()
     {
+        // 清理现有的飞剑
+        ClearExistingSwords();
+        
         for (int i = 0; i < maxSwords; i++)
         {
             CreateSword(i);
+        }
+    }
+    
+    /// <summary>
+    /// 清理现有的飞剑
+    /// </summary>
+    private void ClearExistingSwords()
+    {
+        // 清理列表中的飞剑
+        foreach (FlyingSword sword in swords)
+        {
+            if (sword != null && sword.gameObject != null)
+            {
+                DestroyImmediate(sword.gameObject);
+            }
+        }
+        swords.Clear();
+        
+        // 清理场景中所有FlyingSword(Clone)对象
+        GameObject[] flyingSwordClones = GameObject.FindObjectsByType<GameObject>(FindObjectsSortMode.None);
+        foreach (GameObject obj in flyingSwordClones)
+        {
+            if (obj.name.Contains("FlyingSword(Clone)"))
+            {
+                DestroyImmediate(obj);
+            }
         }
     }
     
@@ -108,17 +147,18 @@ public class FlyingSwordManager : MonoBehaviour
     }
     
     /// <summary>
-    /// 检测范围内的敌人
+    /// 检测范围内的敌人 - 优化版本减少内存分配
     /// </summary>
     private void DetectEnemies()
     {
         enemiesInRange.Clear();
         
-        Collider2D[] colliders = Physics2D.OverlapCircleAll(player.position, attackRange);
+        // 使用Unity 6000推荐的OverlapCircleAll方法，但通过频率控制减少调用次数
+        Collider2D[] hits = Physics2D.OverlapCircleAll(player.position, attackRange);
         
-        foreach (Collider2D col in colliders)
+        foreach (Collider2D col in hits)
         {
-            if (col.CompareTag("Enemy") && col.transform != player)
+            if (col != null && col.CompareTag("Enemy") && col.transform != player)
             {
                 // 检查敌人是否还活着
                 HealthSystem enemyHealth = col.GetComponent<HealthSystem>();
