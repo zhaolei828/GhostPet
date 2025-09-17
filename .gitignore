@@ -142,3 +142,6 @@ Assets/TextMesh Pro.meta
 # WebGL构建目录 (测试用，不需要版本控制)
 WebGL-Test/
 WebGL-Build/
+
+# 外部工具和API项目 (避免嵌套Git仓库)
+jimeng-free-api/
