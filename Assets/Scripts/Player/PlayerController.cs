@@ -8,6 +8,7 @@ public class PlayerController : MonoBehaviour
 {
     [Header("移动设置")]
     [SerializeField] private float moveSpeed = 5f;
+    [SerializeField, Range(0.1f, 2.0f)] private float playerScale = 0.2f; // 玩家缩放比例
     
     [Header("组件引用")]
     [SerializeField] private InputActionAsset inputActions;
@@ -30,6 +31,9 @@ public class PlayerController : MonoBehaviour
         spriteRenderer = GetComponent<SpriteRenderer>();
         touchInputManager = FindFirstObjectByType<TouchInputManager>();
         healthSystem = GetComponent<HealthSystem>();
+        
+        // 应用玩家缩放设置
+        transform.localScale = Vector3.one * playerScale;
         
         // 订阅死亡事件
         if (healthSystem != null)

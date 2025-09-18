@@ -98,15 +98,15 @@ public class RuntimeAssetUpdater : MonoBehaviour
         if (flyingSwordSprite == null) return;
         
         // 查找所有飞剑对象
-        FlyingSword[] flyingSwords = FindObjectsOfType<FlyingSword>();
+        FlyingSword[] flyingSwords = FindObjectsByType<FlyingSword>(FindObjectsSortMode.None);
         foreach (FlyingSword sword in flyingSwords)
         {
             SpriteRenderer renderer = sword.GetComponent<SpriteRenderer>();
-            if (renderer != null && renderer.sprite != flyingSwordSprite)
+            if (renderer != null)
             {
                 renderer.sprite = flyingSwordSprite;
-                // 调整飞剑尺寸
-                sword.transform.localScale = new Vector3(0.15f, 0.15f, 1f);
+                // 调整飞剑尺寸为新的合适大小
+                sword.transform.localScale = new Vector3(0.2f, 0.2f, 1f);
                 Debug.Log($"飞剑素材已更新: {sword.name}");
             }
         }
