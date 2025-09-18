@@ -1,10 +1,10 @@
 fileFormatVersion: 2
-guid: c04cd29fefa692245a2722690b6bc6c5
+guid: f44a7b2e231c62841b6f1fd758ee6119
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: 1208035701682466845
-    second: sword_trail_20250917_163515_0
+      213: -774721671407343463
+    second: sword_trail_0
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -113,7 +113,7 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: sword_trail_20250917_163515_0
+      name: sword_trail_0
       rect:
         serializedVersion: 2
         x: 0
@@ -128,8 +128,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: d10f5caf11ec3c010800000000000000
-      internalID: 1208035701682466845
+      spriteID: 998e7f79eb2af35f0800000000000000
+      internalID: -774721671407343463
       vertices: []
       indices: 
       edges: []
@@ -148,7 +148,7 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      sword_trail_20250917_163515_0: 1208035701682466845
+      sword_trail_0: -774721671407343463
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 
