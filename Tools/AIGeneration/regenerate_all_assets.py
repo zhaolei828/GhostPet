@@ -39,7 +39,7 @@ GAME_ASSETS = {
             "filename": "basic_ghost.png"
         },
         "strong_ghost": {
-            "prompt": "powerful ghost demon, dark smoky aura, fierce red glowing eyes, larger intimidating size, torn black robes, boss enemy sprite, white background, isolated, PNG format, 2D game asset",
+            "prompt": "powerful ghost demon, dark smoky aura, fierce red glowing eyes, larger intimidating size, torn black robes, boss enemy sprite, white background, isolated, PNG format, 2D game asset, image background removed",
             "filename": "strong_ghost.png"
         }
     },
