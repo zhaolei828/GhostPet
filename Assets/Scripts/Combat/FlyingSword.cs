@@ -91,6 +91,18 @@ public class FlyingSword : MonoBehaviour
     {
         if (currentState != SwordState.Orbiting) return;
         
+        // 确保飞剑在攻击前处于正确的当前轨道位置
+        if (manager != null && manager.Player != null)
+        {
+            float angle = (swordIndex * 360f / totalSwords) + (Time.time * manager.OrbitSpeed * 57.3f);
+            Vector3 currentCorrectOrbitPosition = manager.Player.position + new Vector3(
+                Mathf.Cos(angle * Mathf.Deg2Rad) * manager.OrbitRadius,
+                Mathf.Sin(angle * Mathf.Deg2Rad) * manager.OrbitRadius,
+                0
+            );
+            transform.position = currentCorrectOrbitPosition;
+        }
+        
         attackTarget = target;
         damage = swordDamage;
         attackSpeed = speed;
@@ -103,7 +115,7 @@ public class FlyingSword : MonoBehaviour
         if (afterimageManager != null)
             afterimageManager.EnableAfterimage();
         
-        Debug.Log($"飞剑 {swordIndex} 开始攻击 {target.name}");
+        Debug.Log($"飞剑 {swordIndex} 从位置 {transform.position} 开始攻击 {target.name}");
     }
     
     /// <summary>
@@ -173,11 +185,19 @@ public class FlyingSword : MonoBehaviour
             return;
         }
         
-        Vector3 direction = (orbitPosition - transform.position).normalized;
+        // 动态计算当前正确的轨道位置（与UpdateSwordOrbits逻辑一致）
+        float angle = (swordIndex * 360f / totalSwords) + (Time.time * manager.OrbitSpeed * 57.3f);
+        Vector3 currentOrbitPosition = manager.Player.position + new Vector3(
+            Mathf.Cos(angle * Mathf.Deg2Rad) * manager.OrbitRadius,
+            Mathf.Sin(angle * Mathf.Deg2Rad) * manager.OrbitRadius,
+            0
+        );
+        
+        Vector3 direction = (currentOrbitPosition - transform.position).normalized;
         transform.position += direction * returnSpeed * Time.deltaTime;
         
         // 检查是否返回到轨道
-        if (Vector3.Distance(transform.position, orbitPosition) < 0.3f)
+        if (Vector3.Distance(transform.position, currentOrbitPosition) < 0.3f)
         {
             currentState = SwordState.Orbiting;
             
@@ -248,8 +268,11 @@ public class FlyingSword : MonoBehaviour
         switch (currentState)
         {
             case SwordState.Orbiting:
-                // 环绕时指向运动方向
-                direction = velocity.normalized;
+                // 环绕时剑尖朝外（远离玩家）
+                if (manager != null && manager.Player != null)
+                {
+                    direction = (transform.position - manager.Player.position).normalized;
+                }
                 break;
                 
             case SwordState.Attacking:

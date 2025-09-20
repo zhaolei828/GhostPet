@@ -67,6 +67,15 @@ public class HitEffect : MonoBehaviour
     }
     
     /// <summary>
+    /// 更新原始位置（用于重生后重置）
+    /// </summary>
+    public void UpdateOriginalPosition()
+    {
+        originalPosition = transform.position;
+        Debug.Log($"[HitEffect] 已更新 {gameObject.name} 的原始位置为: {originalPosition}");
+    }
+    
+    /// <summary>
     /// 闪烁效果
     /// </summary>
     private IEnumerator FlashEffect()
@@ -98,21 +107,35 @@ public class HitEffect : MonoBehaviour
     private IEnumerator ShakeEffect()
     {
         isShaking = true;
-        Vector3 startPosition = transform.position;
-        float elapsed = 0f;
         
-        while (elapsed < shakeDuration)
+        // 检查是否是玩家 - 玩家不应该被震动位移，只有敌人才震动
+        bool isPlayer = gameObject.CompareTag("Player");
+        
+        if (isPlayer)
         {
-            // 生成随机偏移
-            Vector3 randomOffset = Random.insideUnitCircle * shakeIntensity;
-            transform.position = startPosition + randomOffset;
+            // 玩家只播放视觉效果，不移动位置
+            yield return new WaitForSeconds(shakeDuration);
+        }
+        else
+        {
+            // 敌人执行位置震动
+            Vector3 startPosition = transform.position;
+            float elapsed = 0f;
             
-            elapsed += Time.deltaTime;
-            yield return null;
+            while (elapsed < shakeDuration)
+            {
+                // 生成随机偏移
+                Vector3 randomOffset = Random.insideUnitCircle * shakeIntensity;
+                transform.position = startPosition + randomOffset;
+                
+                elapsed += Time.deltaTime;
+                yield return null;
+            }
+            
+            // 恢复原位置
+            transform.position = startPosition;
         }
         
-        // 恢复原位置
-        transform.position = startPosition;
         isShaking = false;
     }
     
@@ -128,7 +151,12 @@ public class HitEffect : MonoBehaviour
             spriteRenderer.color = originalColor;
         }
         
-        transform.position = originalPosition;
+        // 只有敌人才恢复到原始位置，玩家不移动位置
+        if (!gameObject.CompareTag("Player"))
+        {
+            transform.position = originalPosition;
+        }
+        
         isFlashing = false;
         isShaking = false;
     }

@@ -109,6 +109,13 @@ public class GameManager : MonoBehaviour
             if (cameraFollow != null)
             {
                 cameraFollow.TeleportToTarget();
+                
+                // 更新摄像机震动组件的原始位置
+                CameraShake cameraShake = cameraFollow.GetComponent<CameraShake>();
+                if (cameraShake != null)
+                {
+                    cameraShake.UpdateOriginalPosition();
+                }
             }
         }
     }

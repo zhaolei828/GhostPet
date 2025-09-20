@@ -9,7 +9,7 @@ public class FlyingSwordManager : MonoBehaviour
     [Header("飞剑设置")]
     [SerializeField] private GameObject swordPrefab;           // 飞剑预制体
     [SerializeField] private int maxSwords = 6;                // 最大飞剑数量
-    [SerializeField] private float orbitRadius = 2f;           // 环绕半径
+    [SerializeField] private float orbitRadius = 3.33f;        // 环绕半径
     [SerializeField] private float orbitSpeed = 2f;            // 环绕速度
     
     [Header("攻击设置")]
@@ -26,6 +26,7 @@ public class FlyingSwordManager : MonoBehaviour
     
     // 公开属性
     public Transform Player => player;
+    public float OrbitRadius => orbitRadius;
     
     // 目标检测 - 优化内存分配
     private List<Transform> enemiesInRange = new List<Transform>();
@@ -258,8 +259,6 @@ public class FlyingSwordManager : MonoBehaviour
         Gizmos.color = Color.blue;
         Gizmos.DrawWireSphere(transform.position, orbitRadius);
     }
-    
     // 属性访问器
-    public float OrbitRadius => orbitRadius;
     public float OrbitSpeed => orbitSpeed;
 }

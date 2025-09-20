@@ -172,6 +172,12 @@ public class EnemySpawner : MonoBehaviour
         
         if (enemy != null)
         {
+            // 设置Ghost敌人缩放为0.1
+            if (enemy.name.Contains("Ghost"))
+            {
+                enemy.transform.localScale = new Vector3(0.1f, 0.1f, 1f);
+            }
+            
             // 订阅敌人死亡事件以便从列表中移除
             HealthSystem healthSystem = enemy.GetComponent<HealthSystem>();
             if (healthSystem != null)
@@ -180,7 +186,7 @@ public class EnemySpawner : MonoBehaviour
             }
             
             if (enableDebugLog)
-                Debug.Log($"[EnemySpawner] 从对象池生成敌人: {enemy.name}");
+                Debug.Log($"[EnemySpawner] 从对象池生成敌人: {enemy.name}，缩放: {enemy.transform.localScale}");
         }
         
         return enemy;
@@ -196,6 +202,13 @@ public class EnemySpawner : MonoBehaviour
         
         // 实例化敌人
         GameObject enemyObj = Instantiate(enemyPrefab, position, Quaternion.identity);
+        
+        // 设置Ghost敌人缩放为0.1
+        if (enemyPrefab.name.Contains("Ghost"))
+        {
+            enemyObj.transform.localScale = new Vector3(0.1f, 0.1f, 1f);
+        }
+        
         EnemyAI enemy = enemyObj.GetComponent<EnemyAI>();
         
         if (enemy != null)
@@ -204,7 +217,7 @@ public class EnemySpawner : MonoBehaviour
             ApplyDifficultyToEnemyTraditional(enemyObj);
             
             if (enableDebugLog)
-                Debug.Log($"[EnemySpawner] 传统方式生成敌人: {enemy.name}");
+                Debug.Log($"[EnemySpawner] 传统方式生成敌人: {enemy.name}，缩放: {enemyObj.transform.localScale}");
         }
         
         return enemy;

@@ -131,18 +131,78 @@ public class EnemyAI : MonoBehaviour
         
         if (currentState == EnemyState.Chasing || currentState == EnemyState.Attacking)
         {
-            // 向玩家移动
+            // 向玩家移动，但避开飞剑环绕区域
             Vector2 direction = (player.position - transform.position).normalized;
-            movement = direction * moveSpeed;
+            Vector2 targetPosition = transform.position + (Vector3)(direction * moveSpeed * Time.fixedDeltaTime);
+            
+            // 检查目标位置是否在飞剑环绕区域内
+            float distanceToPlayer = Vector2.Distance(targetPosition, player.position);
+            float swordOrbitRadius = GetSwordOrbitRadius();
+            
+            if (distanceToPlayer <= swordOrbitRadius)
+            {
+                // 如果目标位置在飞剑区域内，寻找绕行路径
+                movement = CalculateAvoidanceMovement(direction, swordOrbitRadius);
+            }
+            else
+            {
+                // 正常向玩家移动
+                movement = direction * moveSpeed;
+            }
             
             // 根据移动方向翻转精灵
-            if (direction.x != 0)
+            if (movement.x != 0)
             {
-                spriteRenderer.flipX = direction.x < 0;
+                spriteRenderer.flipX = movement.x < 0;
             }
         }
         
         rb.linearVelocity = movement;
+    }
+    
+    /// <summary>
+    /// 获取飞剑环绕半径
+    /// </summary>
+    private float GetSwordOrbitRadius()
+    {
+        FlyingSwordManager swordManager = FindFirstObjectByType<FlyingSwordManager>();
+        if (swordManager != null)
+        {
+            return swordManager.OrbitRadius + 0.5f; // 添加一些缓冲距离
+        }
+        return 3f; // 默认值
+    }
+    
+    /// <summary>
+    /// 计算避让移动方向
+    /// </summary>
+    private Vector2 CalculateAvoidanceMovement(Vector2 originalDirection, float avoidRadius)
+    {
+        // 计算当前距离玩家的距离
+        float currentDistance = Vector2.Distance(transform.position, player.position);
+        
+        // 如果已经在飞剑区域外，尝试沿着圆周移动
+        if (currentDistance >= avoidRadius)
+        {
+            // 计算垂直于玩家方向的切线方向
+            Vector2 tangent1 = new Vector2(-originalDirection.y, originalDirection.x);
+            Vector2 tangent2 = new Vector2(originalDirection.y, -originalDirection.x);
+            
+            // 选择能更快接近玩家的切线方向
+            Vector2 pos1 = (Vector2)transform.position + tangent1 * moveSpeed * Time.fixedDeltaTime;
+            Vector2 pos2 = (Vector2)transform.position + tangent2 * moveSpeed * Time.fixedDeltaTime;
+            
+            float dist1 = Vector2.Distance(pos1, player.position);
+            float dist2 = Vector2.Distance(pos2, player.position);
+            
+            return (dist1 < dist2) ? tangent1 * moveSpeed : tangent2 * moveSpeed;
+        }
+        else
+        {
+            // 如果在飞剑区域内，向外移动到安全距离
+            Vector2 awayDirection = ((Vector2)transform.position - (Vector2)player.position).normalized;
+            return awayDirection * moveSpeed;
+        }
     }
     
     /// <summary>

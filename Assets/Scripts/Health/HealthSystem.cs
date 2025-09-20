@@ -46,6 +46,13 @@ public class HealthSystem : MonoBehaviour
         // 显示伤害数字
         ShowDamageNumber(damage);
         
+        // 播放受击效果
+        HitEffect hitEffect = GetComponent<HitEffect>();
+        if (hitEffect != null)
+        {
+            hitEffect.PlayHitEffect(damage);
+        }
+        
         // 触发事件
         OnDamageTaken?.Invoke(damage);
         OnHealthChanged?.Invoke(currentHealth, maxHealth);

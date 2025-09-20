@@ -154,6 +154,7 @@ public class CameraShake : MonoBehaviour
         if (!isShaking)
         {
             originalPosition = transform.position;
+            Debug.Log($"[CameraShake] 已更新摄像机原始位置为: {originalPosition}");
         }
     }
 }

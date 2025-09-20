@@ -32,6 +32,12 @@ public class PlayerController : MonoBehaviour
         touchInputManager = FindFirstObjectByType<TouchInputManager>();
         healthSystem = GetComponent<HealthSystem>();
         
+        // 设置物理属性
+        if (rb != null)
+        {
+            rb.freezeRotation = true; // 冻结旋转，防止Player转圈
+        }
+        
         // 应用玩家缩放设置
         transform.localScale = Vector3.one * playerScale;
         
@@ -180,9 +186,28 @@ public class PlayerController : MonoBehaviour
     /// </summary>
     public void Respawn(Vector3 spawnPosition)
     {
+        // 重置位置和旋转
         transform.position = spawnPosition;
+        transform.rotation = Quaternion.identity;
+        
+        // 重置物理状态
         IsAlive = true;
         rb.linearVelocity = Vector2.zero;
+        rb.angularVelocity = 0f;
+        rb.freezeRotation = true; // 确保重生后冻结旋转
+        
+        // 重置精灵状态
+        if (spriteRenderer != null)
+        {
+            spriteRenderer.flipX = false;
+        }
+        
+        // 重置特效组件的原始位置
+        HitEffect hitEffect = GetComponent<HitEffect>();
+        if (hitEffect != null)
+        {
+            hitEffect.UpdateOriginalPosition();
+        }
         
         // 恢复血量
         if (healthSystem != null)
@@ -190,7 +215,7 @@ public class PlayerController : MonoBehaviour
             healthSystem.Revive(1f); // 满血复活
         }
         
-        Debug.Log("玩家重生！");
+        Debug.Log("玩家重生！位置: " + spawnPosition);
     }
     
     private void OnDestroy()
